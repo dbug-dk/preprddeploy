@@ -1,0 +1,234 @@
+{% load common_tags %}
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>
+      {% current_region_cn_name %}-{% block title %}{% endblock %}
+    </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    {% load staticfiles %}
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="{% static 'common/css/sbadmin2/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/sbadmin2/metisMenu.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/sbadmin2/sb-admin-2.min.css' %}">
+    <!-- Fonts from Font Awsome -->
+    <link rel="stylesheet" href="{% static 'common/css/sbadmin2/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/messenger/messenger.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/messenger/messenger-theme-future.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/bootstrap-dialog/bootstrap-dialog.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/bootstrap-select/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/site.min.css' %}" />
+    {% block css %}{% endblock %}
+  </head>
+    <body>
+        {% block container %}
+        <div id="wrapper">
+            <!-- Navigation -->
+            <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" style="margin-bottom: 0">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="{% url 'index' %}">预生产环境部署系统</a>
+                </div>
+                <ul class="nav navbar-top-links navbar-right">
+                    <!-- /.dropdown -->
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="true">
+                            {% current_region_cn_name %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            {% for region, region_cn_name in regions %}
+                                <li>
+                                    <a onclick="changeRegion('{{region}}')">{{region_cn_name}}</a>
+                                </li>
+                                {% if forloop.last %}
+                                {% else %}
+                                <li class="divider"></li>
+                                {% endif %}
+                            {%endfor%}
+                        </ul>
+                        <!-- /.dropdown-alerts -->
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            </li>
+                            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out fa-fw"></i> 退出登录</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+            <div class="navbar-default sidebar" role="navigation">
+                    <div class="sidebar-nav navbar-collapse">
+                        <ul class="nav" id="side-menu">
+                            <li>
+                                <a href="/?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i> Dashboard</a>
+                            </li>
+                            {% comment %}
+                            <li>
+                                <a href="/upgradeHistory/?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i> 历史更新</a>
+                            </li>
+
+                            <li>
+                                <a href="/uploader/upload_file?region={{current_region}}"><i class="fa fa-book fa-fw"></i>文件上传</a>
+                            </li>
+                            <li>
+                                <a href="/elb/show_loadbalancers?region={{current_region}}"><i class="fa fa-retweet fa-fw"></i>Pre-PRD负载均衡器管理</a>
+                            </li>
+                            <li>
+                                <a href="/basic/show_basic_service_details?region={{current_region}}"><i class="fa fa-table fa-fw"></i>Pre-PRD基础服务管理</a>
+                            </li>
+                            <li>
+                                <a href="/business/show_preprd_instances?region={{current_region}}"><i class="fa fa-table fa-fw"></i>Pre-PRD业务实例管理</a>
+                            </li>
+                            <li>
+                                <a href="/launcher/?region={{current_region}}"><i class="fa fa-laptop fa-fw"></i>启动EC2实例</a>
+                            </li>
+                            <li>
+                                <a href="/deploy/?region={{current_region}}"><i class="fa fa-wrench fa-fw"></i>Pre-Prd自动化部署</a>
+                            </li>
+                            <li>
+                                <a href="/autoDeploy/auto_deploy_home?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i>一键部署</a>
+                            </li>
+                            <li>
+                                <a href="/manual/?region={{current_region}}"><i class="glyphicon glyphicon-edit fa-fw"></i>FAQ</a>
+                            </li>
+                            {% endcomment %}
+                        </ul>
+                    </div>
+                    <!-- /.sidebar-collapse -->
+                </div>
+            <div id="page-wrapper" style="padding-top: 10px;">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+        {% endblock %}
+        <script src="{% static 'common/js/sbadmin2/jquery.min.js' %}"></script>
+        <script src="{% static 'common/js/sbadmin2/bootstrap.min.js' %}"></script>
+        <script src="{% static 'common/js/sbadmin2/metisMenu.min.js' %}"></script>
+        <script src="{% static 'common/js/sbadmin2/sb-admin-2.min.js' %}"></script>
+        <script src="{% static 'common/js/messenger/messenger.min.js' %}"></script>
+        <script src="{% static 'common/js/bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
+        <script src="{% static 'common/js/bootstrap-select/bootstrap-select.min.js' %}"></script>
+        <script>
+            region = "{{current_region}}";
+            $._messengerDefaults = {
+                extraClasses: 'messenger-theme-future messenger-on-top',
+                parentLocations: ['#page-wrapper']
+            };
+
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            var csrftoken = getCookie('csrftoken');
+
+            function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+
+            function alertMessage(alertText, size, title, theme){
+                //size: normal,small,wide,large
+                //theme: warn, info, primary, danger
+                var sizeMap = {
+                    'small': BootstrapDialog.SIZE_SMALL,
+                    'normal': BootstrapDialog.SIZE_NORMAL,
+                    'large': BootstrapDialog.SIZE_LARGE,
+                    'wide': BootstrapDialog.SIZE_WIDE
+                };
+                var themeMap = {
+                    'warning': BootstrapDialog.TYPE_WARNING,
+                    'danger': BootstrapDialog.TYPE_DANGER,
+                    'primary': BootstrapDialog.TYPE_PRIMARY,
+                    'info': BootstrapDialog.TYPE_INFO,
+                    'default': BootstrapDialog.TYPE_DEFAULT,
+                    'success': BootstrapDialog.TYPE_SUCCESS
+                };
+                var modalSize = BootstrapDialog.SIZE_WIDE;
+                if (size) {
+                    modalSize = sizeMap[size]
+                }
+                var modalType = BootstrapDialog.TYPE_WARNING;
+                if (theme){
+                    modalType = themeMap[theme]
+                }
+                if (!title){
+                    title = 'Warning'
+                }
+                var alertDialog = new BootstrapDialog({
+                    title : title,
+                    type : modalType,
+                    message: alertText,
+                    size: modalSize,
+                    nl2br: false,
+                    buttons:[{
+                        id: 'alert-ok',
+                        icon: 'fa fa-check-square-o',
+                        label: 'ok',
+                        action:function(dialogRef){
+                            dialogRef.close()
+                        }
+                    }]
+                });
+                alertDialog.open();
+                return alertDialog
+            }
+
+            function responseTextFormat(text){
+                if (text.indexOf('<!DOCTYPE html>') == 1){
+                    return text
+                }
+                else{
+                    return text.split('\n').join('<br/>')
+                }
+            }
+
+            function changeRegion(region){
+                alertMessage('正在切换区域...','small','Information');
+                var protocol = window.location.protocol;
+                var currentHost = window.location.host;
+                var currentPathname = window.location.pathname;
+                var currentUrl = protocol + '//' + currentHost + currentPathname;
+                window.location.assign(currentUrl + '?region=' + region)
+            }
+        </script>
+        {% block script %}
+        {% endblock %}
+<!--Load these page level functions-->
+    </body>
+</html>

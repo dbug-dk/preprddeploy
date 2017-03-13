@@ -1,0 +1,425 @@
+{% extends 'layout/layout.html' %}
+{% block title %}首页{% endblock %}
+{% load staticfiles %}
+{% load guardian_tags %}
+{% block css %}
+<link href="{% static 'common/css/datatables/dataTables.bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'common/css/datatables/dataTables.responsive.css' %}" rel="stylesheet">
+<link href="{% static 'common/css/datatables/jquery.dataTables.min.css'%}" rel="stylesheet">
+<link href="{% static 'common/css/datatables/editor.dataTables.min.css'%}" rel="stylesheet">
+<link href="{% static 'common/css/datatables/buttons.dataTables.min.css'%}" rel="stylesheet">
+<link href="{% static 'common/css/datatables/select.dataTables.min.css'%}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+{% get_obj_perms request.user for module_page as "module_perms"%}
+{% if "view" in module_perms %}
+<div class="row">
+    <div class="col-md-4 col-sm-4">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fa fa-laptop fa-5x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" id="ec2num"></div>
+                        <div>EC2实例</div>
+                    </div>
+                </div>
+            </div>
+            <a href="{#{% url 'showPreprdInstances'%}#}">
+                <div class="panel-footer">
+                    <span class="pull-left">View Details</span>
+                    <span class="pull-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                    </span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-4">
+        <div class="panel panel-green">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fa fa-exchange fa-5x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" id="elbnum"></div>
+                        <div>LoadBalancer</div>
+                    </div>
+                </div>
+            </div>
+            <a href="{#{% url 'showLoadbalancers' %}#}">
+                <div class="panel-footer">
+                    <span class="pull-left">View Details</span>
+                    <span class="pull-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                    </span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fa fa-image fa-5x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge" id="aminum"></div>
+                        <div>AMI镜像</div>
+                    </div>
+                </div>
+            </div>
+            <a href="">
+                <div class="panel-footer">
+                    <span class="pull-left">View Details</span>
+                    <span class="pull-right">
+                        <i class="fa fa-arrow-circle-right"></i>
+                    </span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                模块列表
+            </div>
+            <div class="panel-body">
+                <table width="100%" class="table table-striped table-bordered table-hover" id="moduleInfos">
+                     <thead>
+                         <tr>
+                            <th></th>
+                            <th>模块名</th>
+                            <th>当前版本</th>
+                            <th>更新版本</th>
+                            <th>模块类型</th>
+                            <th>区域</th>
+                            <th>负责人</th>
+                            <th>部署顺序</th>
+                            <th>启动参数</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+                     </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-md-12">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            脚本执行记录
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>脚本名</th>
+                            <th>执行时间</th>
+                            <th>执行结果</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for script_log in script_exec_logs %}
+                        <tr>
+                            <td>{{scriptExecLog.user.username}}</td>
+                            <td>{{scriptExecLog.script_name}}</td>
+                            <td>{{scriptExecLog.exec_time}}</td>
+                            <td>
+                                {% if scriptExecLog.if_success %}
+                                <span class="label btn-sm label-success">
+                                    成功
+                                </span>
+                                {% else %}
+                                <span class="label btn-sm label-danger">
+                                    失败
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="center ">
+                                <a class="btn btn-xs btn-primary" href="#">
+                                    <span class="fa fa-eye">
+                                        查看结果
+                                    </span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<h3 class="text-danger">你没有权限查看当前页面</h3>
+{% endif %}
+{% endblock %}
+{% block script %}
+<script src="{% static 'common/js/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'common/js/datatables/dataTables.bootstrap.min.js' %}"></script>
+<script src="{% static 'common/js/datatables/dataTables.responsive.js' %}"></script>
+<script src="{% static 'common/js/datatables/dataTables.editor.min.js' %}"></script>
+<script src="{% static 'common/js/datatables/dataTables.buttons.min.js'%}"></script>
+<script src="{% static 'common/js/datatables/dataTables.select.min.js'%}"></script>
+<script>
+    {% get_obj_perms request.user for module_page as "pageperms" %}
+    $(document).ready(function(){
+        initModuleTable();
+        statisticsResource()
+    });
+
+    function statisticsResource(){
+        var statisticsRequest = $.ajax({
+            url: '/module/get_resources_num',
+            dataType: 'json',
+            data: {'region': region},
+            type: 'GET'
+        });
+        statisticsRequest.done(function(jsondata){
+            $('#ec2num').text(jsondata.ec2num);
+            $('#elbnum').text(jsondata.elbnum);
+            $('#aminum').text(jsondata.aminum);
+        })
+    }
+
+    function initModuleTable(){
+        initEditor();
+        loadTable()
+    }
+
+    function getUsers(){
+        var request = $.ajax({
+            url:'module/get_users',
+            type:'GET',
+            dataType:'json'
+        });
+        request.done(function(data){
+            editor.field('user').update(data.options)
+        })
+    }
+
+    function cmpVersion(x, y){
+        var arrX = x.split('.');
+        var arrY = y.split('.');
+        var lenX = arrX.length;
+        var lenY = arrY.length;
+        var loopCount;
+        if (lenX < lenY){
+            loopCount = lenX
+        }
+        else{
+            loopCount = lenY
+        }
+        var i = 0;
+        while (i < loopCount){
+            var verX = parseInt(arrX[i]);
+            var verY = parseInt(arrY[i]);
+            if (verX > verY){
+                return true
+            }
+            else if(verX < verY){
+                return false
+            }
+            i++
+        }
+        return lenX > lenY;
+    }
+
+
+    function initEditor(){
+        editor = new $.fn.dataTable.Editor({
+            ajax: "module/update_module_info",
+            table: "#moduleInfos",
+            idSrc: "module_name",
+            fields:[
+                {
+                    label: "模块名",
+                    name: "module_name"
+                },
+                {
+                    label: "当前版本",
+                    name: "current_version"
+                },{
+                    label: "更新版本",
+                    name: "update_version"
+                },{
+                    label: "模块类型",
+                    name: "module_type",
+                    type: "select",
+                    options: [
+                        {label: "standard", value: "standard"},
+                        {label: "tomcat", value: "tomcat"},
+                        {label: "other", value: "other"}
+                    ]
+                },{
+                    label: "区域",
+                    name: "regions"
+                },
+                {
+                    label: "负责人",
+                    name: "user",
+                    type: "select"
+                },
+                {
+                    label: "部署顺序",
+                    name: "order"
+                }
+            ]
+        });
+        editor.on('initCreate', function(){
+            getUsers();
+            editor.field('module_name').enable();
+            editor.field('regions').enable()
+        });
+
+        editor.on('initEdit', function(){
+            getUsers();
+            editor.field('module_name').disable();
+            editor.field('regions').disable()
+        });
+
+        editor.on('preSubmit', function(e, o, action){
+            if(action != 'remove'){
+                var module_name = editor.field( 'module_name' );
+                if (!module_name.val()){
+                    module_name.error( '模块名不能为空！' );
+                }
+                var user = editor.field('user');
+                if (! user.val()){
+                    user.error('必须指定模块负责人！')
+                }
+                var currentVersion = editor.field('current_version');
+                var updateVersion = editor.field('update_version');
+                if(updateVersion.val()&&cmpVersion(currentVersion.val(), updateVersion.val())){
+                    updateVersion.error('更新版本号必须大于等于当前版本号！')
+                }
+                if(!updateVersion.val()&&!currentVersion.val()) {
+                    currentVersion.error('更新版本号与当前版本号不能同时为空！')
+                }
+                // If any error was reported, cancel the submission so it can be corrected
+                if ( this.inError() ) {
+                    return false;
+                }
+            }
+        } );
+        {% if 'operate' in pageperms %}
+        $('#moduleInfos').on('dblclick', 'tbody td', function(){
+            if ($(this).hasClass("editable")){
+                editor.bubble(this, {
+                    submit: 'allIfChanged'
+                });
+            }
+        });
+        {% endif %}
+    }
+
+    function loadTable(){
+        $('#moduleInfos').DataTable({
+            {% if 'operate' in pageperms %}
+            dom: "Bfrtip",
+            {% else %}
+            dom: "frtip",
+            {% endif %}
+            "ajax": {
+                "url": "/module/show_modules",
+                "type": "GET",
+                "data": {
+                    "region": region
+                }
+            },
+            "columns": [
+                {
+                    data: null,
+                    defaultContent: '',
+                    className: 'select-checkbox',
+                    orderable: false
+                },
+                {"data": "module_name"},
+                {"data": "current_version"},
+                {"data": "update_version"},
+                {"data": "module_type"},
+                {"data": "regions"},
+                {"data": "user"},
+                {"data": "order"},
+                {"data": "operation"}
+            ],
+            "rowId": "module_name",
+            "order": [[1,'desc']],
+            "columnDefs":[
+                {
+                    "targets":[-1],
+                    "orderable":false
+                },
+                {
+                    "targets":[2,3,6,7],
+                    className:"editable"
+                }
+            ],
+            "responsive": true,
+            "select": {
+                style: 'os',
+                selector: 'td:first-child'
+            },
+            {% if 'operate' in pageperms %}
+            "buttons":[
+                {
+                    extend: "create",
+                    editor: editor,
+                    formTitle: "新增模块",
+                    formButtons: [
+                        {
+                            label: "Cancel",
+                            fn: function(){this.close();}
+                        },
+                        'Create'
+                    ]
+                },
+                {
+                    extend: "edit",
+                    editor: editor,
+                    formTitle: "修改模块信息",
+                    formButtons: [
+                        {
+                            label:"Cancel",
+                            fn:function(){this.close();}
+                        },
+                        'Update'
+                    ]
+                },
+                {
+                    extend: "remove",
+                    editor: editor,
+                    formTitle: "删除模块",
+                    formMessage: "注意，模块的实例启动配置也将被删除~",
+                    formButtons:[
+                        {
+                            label:"Cancel",
+                            fn:function(){
+                                this.close()
+                            }
+                        },
+                        'Delete'
+                    ]
+
+                 }
+            ]
+            {% endif %}
+        })
+    }
+</script>
+{% endblock %}
