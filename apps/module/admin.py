@@ -1,5 +1,5 @@
 from django.contrib import admin
-from apps.module.models import *
+from module.models import *
 # Register your models here.
 
 models = [ScriptExecLog, ModuleInfo, Ec2OptionSet]

@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from apps.module.views import home
+from module.views import home
 
 urlpatterns = [
     # Examples:
@@ -8,6 +8,7 @@ urlpatterns = [
     # url(r'^blog/', include('blog.urls')),
     url(r'^$', home, name='index'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^user/', include('apps.permission.urls')),
-    url(r'^module/', include('apps.module.urls'))
+    url(r'^user/', include('permission.urls')),
+    url(r'^module/', include('module.urls')),
+    url(r'^elb/', include('elb.urls'))
 ]

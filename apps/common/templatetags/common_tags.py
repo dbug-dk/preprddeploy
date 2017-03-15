@@ -6,7 +6,7 @@
 #    1.  , dengken, first create
 from django import template
 
-from apps.common.models import RegionInfo
+from common.models import RegionInfo
 
 register = template.Library()
 

@@ -79,16 +79,15 @@
                             <li>
                                 <a href="/?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i> Dashboard</a>
                             </li>
+                            <li>
+                                <a href="/elb/home?region={{current_region}}"><i class="fa fa-retweet fa-fw"></i>Pre-PRD负载均衡器管理</a>
+                            </li>
                             {% comment %}
                             <li>
                                 <a href="/upgradeHistory/?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i> 历史更新</a>
                             </li>
-
                             <li>
                                 <a href="/uploader/upload_file?region={{current_region}}"><i class="fa fa-book fa-fw"></i>文件上传</a>
-                            </li>
-                            <li>
-                                <a href="/elb/show_loadbalancers?region={{current_region}}"><i class="fa fa-retweet fa-fw"></i>Pre-PRD负载均衡器管理</a>
                             </li>
                             <li>
                                 <a href="/basic/show_basic_service_details?region={{current_region}}"><i class="fa fa-table fa-fw"></i>Pre-PRD基础服务管理</a>
@@ -216,6 +215,11 @@
                 else{
                     return text.split('\n').join('<br/>')
                 }
+            }
+
+            function alertAjaxError(request){
+                var text = responseTextFormat(request.responseText);
+                alertMessage(text, 'wide', 'Error', 'danger')
             }
 
             function changeRegion(region){

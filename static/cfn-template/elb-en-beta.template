@@ -1,0 +1,989 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters" : {
+	"vpcId":{
+		"Description" : "VPC Id",
+		"Type" : "AWS::EC2::VPC::Id"
+	},
+	"privateSubnet1" : {
+		"Description" : "one of the private subnet",
+		"Type" : "AWS::EC2::Subnet::Id"
+	},
+	"privateSubnet2" : {
+		"Description" : "the other of the private subnet",
+		"Type" : "AWS::EC2::Subnet::Id"
+	},
+	"publicSubnet1" : {
+		"Description" : "one of the public subnet",
+		"Type" : "AWS::EC2::Subnet::Id"
+	},
+	"publicSubnet2" : {
+		"Description" : "the other one of the public subnet",
+		"Type" : "AWS::EC2::Subnet::Id"
+	},
+    "preprdelbvaserver0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdinternalelbmail0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdinternalelbvaserver0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdelbconnector0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdelbappserver0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdelbaccountweb0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdinternalelbappserver0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default":"no"
+    },
+    "preprdelbeweb0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default" : "no"
+    },
+    "preprdelbsefcore0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default" : "no"
+    },
+    "preprdelbstorage0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default" : "no"
+    },
+    "preprdelbsnsHandler0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default" : "no"
+    },
+    "preprdinternalelbdal0":{
+        "Description" : "if yes, will create this elb and sg",
+        "Type" : "String",
+        "Default" : "no"
+    }
+  },
+  "Conditions":{
+    "elbvaserver":{"Fn::Equals":[{"Ref":"preprdelbvaserver0"},"yes"]},
+    "elbmail":{"Fn::Equals":[{"Ref":"preprdinternalelbmail0"},"yes"]},
+    "elbvaserverinternal":{"Fn::Equals":[{"Ref":"preprdinternalelbvaserver0"},"yes"]},
+    "elbconnector":{"Fn::Equals":[{"Ref":"preprdelbconnector0"},"yes"]},
+    "elbappserver":{"Fn::Equals":[{"Ref":"preprdelbappserver0"},"yes"]},
+    "elbaccountweb":{"Fn::Equals":[{"Ref":"preprdelbaccountweb0"},"yes"]},
+    "elbapperverinternal":{"Fn::Equals":[{"Ref":"preprdinternalelbappserver0"},"yes"]},
+    "elbeweb":{"Fn::Equals":[{"Ref":"preprdelbeweb0"},"yes"]},
+    "elbsefcore":{"Fn::Equals":[{"Ref":"preprdelbsefcore0"},"yes"]},
+    "elbstorage":{"Fn::Equals":[{"Ref":"preprdelbstorage0"},"yes"]},
+    "elbsnshandler":{"Fn::Equals":[{"Ref":"preprdelbsnsHandler0"},"yes"]},
+    "elbdal":{"Fn::Equals":[{"Ref":"preprdinternalelbdal0"},"yes"]}
+  },
+  "Resources": {
+    "elbDal": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbdal",
+      "Properties": {
+        "Subnets": [
+           {"Ref":"privateSubnet1"},
+		   {"Ref":"privateSubnet2"}
+        ],
+        "Scheme":"internal",
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:19191/heartbeat",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {"Fn::GetAtt":["sgElbDal","GroupId"]}
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "19191",
+            "LoadBalancerPort": "19191",
+            "Protocol": "HTTP",
+            "InstanceProtocol": "HTTP"
+          }
+        ],
+        "LoadBalancerName":"preprd-internal-elb-dal-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-internal-elb-dal-0"
+          }
+        ]
+      }
+    },
+	"sgElbDal":{
+		"Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbdal",
+		"Properties" : {
+			"GroupDescription" : "security for mail elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "19191",
+				"ToPort" : "19191",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-dal"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+	},
+    "elbSnsHandler": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbsnshandler",
+      "Properties": {
+        "Subnets": [
+           {"Ref":"publicSubnet1"},
+		   {"Ref":"publicSubnet2"}
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:10000/health",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {"Fn::GetAtt":["sgElbSnsHandler","GroupId"]}
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "10000",
+            "LoadBalancerPort": "80",
+            "Protocol": "HTTP",
+            "InstanceProtocol": "HTTP"
+          }
+        ],
+        "LoadBalancerName":"preprd-elb-snsHandler-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-elb-snsHandler-0"
+          }
+        ]
+      }
+    },
+	"sgElbSnsHandler":{
+		"Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbsnshandler",
+		"Properties" : {
+			"GroupDescription" : "security for snsHandler elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "80",
+				"ToPort" : "80",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-snsHandler"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+	},
+    "elbStorage":{
+        "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+        "Condition":"elbstorage",
+        "Properties": {
+            "Policies": [
+                {
+                    "PolicyName": "SSLNegotiationPolicy-preprd-elb-storage-0",
+                    "PolicyType": "SSLNegotiationPolicyType",
+                    "Attributes": [
+                        {
+                        "Name": "Reference-Security-Policy",
+                        "Value": "ELBSecurityPolicy-2015-05"
+                        }
+                    ]
+                }
+            ],
+            "Subnets": [
+                {"Ref":"publicSubnet1"},
+                {"Ref":"publicSubnet2"}
+            ],
+            "HealthCheck": {
+                "HealthyThreshold": "3",
+                "Interval": "20",
+                "Target": "HTTP:41080/health",
+                "Timeout": "5",
+                "UnhealthyThreshold": "3"
+            },
+            "ConnectionDrainingPolicy": {
+                "Enabled": "true",
+                "Timeout": "300"
+            },
+            "ConnectionSettings": {
+                "IdleTimeout": "60"
+            },
+            "LoadBalancerName":"preprd-elb-storage-0",
+            "CrossZone": "true",
+            "SecurityGroups": [
+                {"Fn::GetAtt":["sgElbStorage","GroupId"]}
+            ],
+            "Listeners": [
+                {
+                    "InstancePort": "41080",
+                    "LoadBalancerPort": "443",
+                    "Protocol": "HTTPS",
+                    "InstanceProtocol": "HTTP",
+                    "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+                    "PolicyNames": [
+                      "SSLNegotiationPolicy-preprd-elb-storage-0"
+                    ]
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "preprd-elb-storage-0"
+                }
+            ]
+        }
+    },
+    "sgElbStorage":{
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbstorage",
+		"Properties" : {
+			"GroupDescription" : "security for storage elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "443",
+				"ToPort" : "443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-storage"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+    },
+    "elbEweb":{
+        "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+        "Condition":"elbeweb",
+        "Properties": {
+            "Policies": [
+                {
+                    "PolicyName": "AWSConsole-SSLNegotiationPolicy-prd-elb-eweb-0-1442316614542",
+                    "PolicyType": "SSLNegotiationPolicyType",
+                    "Attributes": [
+                        {
+                        "Name": "Reference-Security-Policy",
+                        "Value": "ELBSecurityPolicy-2015-05"
+                        }
+                    ]
+                }
+            ],
+            "Subnets": [
+                {"Ref":"publicSubnet1"},
+                {"Ref":"publicSubnet2"}
+            ],
+            "HealthCheck": {
+                "HealthyThreshold": "3",
+                "Interval": "20",
+                "Target": "HTTP:40080/health",
+                "Timeout": "5",
+                "UnhealthyThreshold": "3"
+            },
+            "ConnectionDrainingPolicy": {
+                "Enabled": "true",
+                "Timeout": "300"
+            },
+            "ConnectionSettings": {
+                "IdleTimeout": "60"
+            },
+            "LoadBalancerName":"preprd-elb-eweb-0",
+            "CrossZone": "true",
+            "SecurityGroups": [
+                {"Fn::GetAtt":["sgElbEweb","GroupId"]}
+            ],
+            "Listeners": [
+                {
+                    "InstancePort": "40080",
+                    "LoadBalancerPort": "40443",
+                    "Protocol": "HTTPS",
+                    "InstanceProtocol": "HTTP",
+                    "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+                    "PolicyNames": [
+                      "AWSConsole-SSLNegotiationPolicy-prd-elb-eweb-0-1442316614542"
+                    ]
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "preprd-elb-eweb-0"
+                }
+            ]
+        }
+    },
+    "sgElbEweb":{
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbeweb",
+		"Properties" : {
+			"GroupDescription" : "security for vaserver elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "40443",
+				"ToPort" : "40443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-eweb"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+    },
+    "elbSefcore":{
+        "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+        "Condition":"elbsefcore",
+        "Properties": {
+            "Policies": [
+                {
+                    "PolicyName": "AWSConsole-SSLNegotiationPolicy-prd-elb-sefcore-0-1442316614542",
+                    "PolicyType": "SSLNegotiationPolicyType",
+                    "Attributes": [
+                        {
+                        "Name": "Reference-Security-Policy",
+                        "Value": "ELBSecurityPolicy-2015-05"
+                        }
+                    ]
+                }
+            ],
+            "Subnets": [
+                {"Ref":"publicSubnet1"},
+                {"Ref":"publicSubnet2"}
+            ],
+            "HealthCheck": {
+                "HealthyThreshold": "2",
+                "Interval": "20",
+                "Target": "TCP:60443",
+                "Timeout": "5",
+                "UnhealthyThreshold": "6"
+            },
+            "ConnectionDrainingPolicy": {
+                "Enabled": "true",
+                "Timeout": "300"
+            },
+            "ConnectionSettings": {
+                "IdleTimeout": "60"
+            },
+            "LoadBalancerName":"preprd-elb-sefcore-0",
+            "CrossZone": "true",
+            "SecurityGroups": [
+                {"Fn::GetAtt":["sgElbSefcore","GroupId"]}
+            ],
+            "Listeners": [
+                {
+                    "InstancePort": "60443",
+                    "LoadBalancerPort": "60443",
+                    "Protocol": "SSL",
+                    "InstanceProtocol": "TCP",
+                    "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-connector-2019-7-13",
+                    "PolicyNames": [
+                      "AWSConsole-SSLNegotiationPolicy-prd-elb-sefcore-0-1442316614542"
+                    ]
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "preprd-elb-sefcore-0"
+                }
+            ]
+        }
+    },
+    "sgElbSefcore":{
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbsefcore",
+		"Properties" : {
+			"GroupDescription" : "security for vaserver elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "60443",
+				"ToPort" : "60443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-sefcore"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+    },
+    "elbVaserver": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbvaserver",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "AWSConsole-SSLNegotiationPolicy-prd-elb-vaserver-0-1442316614542",
+            "PolicyType": "SSLNegotiationPolicyType",
+            "Attributes": [
+              {
+                "Name": "Reference-Security-Policy",
+                "Value": "ELBSecurityPolicy-2015-05"
+              }
+            ]
+          }
+        ],
+        "Subnets": [
+          {"Ref":"publicSubnet1"},
+		   {"Ref":"publicSubnet2"}
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:62080/health",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "LoadBalancerName":"preprd-elb-vaserver-0",
+        "CrossZone": "true",
+        "SecurityGroups": [
+           {"Fn::GetAtt":["sgElbVaServer","GroupId"]}
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "62080",
+            "LoadBalancerPort": "62443",
+            "Protocol": "HTTPS",
+            "InstanceProtocol": "HTTP",
+            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+            "PolicyNames": [
+              "AWSConsole-SSLNegotiationPolicy-prd-elb-vaserver-0-1442316614542"
+            ]
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-elb-vaserver-0"
+          }
+        ]
+      }
+    },
+    "sgElbVaServer":{
+		"Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbvaserver",
+		"Properties" : {
+			"GroupDescription" : "security for vaserver elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "62443",
+				"ToPort" : "62443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-vaserver"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+	},
+	"elbMail": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbmail",
+      "Properties": {
+        "Subnets": [
+           {"Ref":"privateSubnet1"},
+		   {"Ref":"privateSubnet2"}
+        ],
+        "Scheme":"internal",
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:8090/healthCheck",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {"Fn::GetAtt":["sgElbMail","GroupId"]}
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "8090",
+            "LoadBalancerPort": "61080",
+            "Protocol": "HTTP",
+            "InstanceProtocol": "HTTP"
+          }
+        ],
+        "LoadBalancerName":"preprd-internal-elb-mail-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-internal-elb-mail-0"
+          }
+        ]
+      }
+    },
+	"sgElbMail":{
+		"Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbmail",
+		"Properties" : {
+			"GroupDescription" : "security for mail elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "61080",
+				"ToPort" : "61080",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-mail"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+	},
+    
+    "elbVaInternal": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbvaserverinternal",
+      "Properties": {
+        "Subnets": [
+           {"Ref":"privateSubnet1"},
+		   {"Ref":"privateSubnet2"}
+        ],
+        "Scheme":"internal",
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:62080/health",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {"Fn::GetAtt":["sgElbVaServerInternal","GroupId"]}
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "62080",
+            "LoadBalancerPort": "62080",
+            "Protocol": "HTTP",
+            "InstanceProtocol": "HTTP"
+          }
+        ],
+        "LoadBalancerName":"preprd-internal-elb-vaserver-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-internal-elb-vaserver-0"
+          }
+        ]
+      }
+    },
+	"sgElbVaServerInternal":{
+		"Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbvaserverinternal",
+		"Properties" : {
+			"GroupDescription" : "security for vaserver internal elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "62080",
+				"ToPort" : "62080",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-vaserver-internal"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+	},
+    "elbConnector0": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbconnector",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "AWSConsole-SSLNegotiationPolicy-prd-elb-connector-0-1442316562490",
+            "PolicyType": "SSLNegotiationPolicyType",
+            "Attributes": [
+              {
+                "Name": "Reference-Security-Policy",
+                "Value": "ELBSecurityPolicy-2015-05"
+              }
+            ]
+          },
+          {
+            "PolicyName": "EnableProxyProtocolPolicy",
+            "PolicyType": "ProxyProtocolPolicyType",
+            "Attributes": [
+              {
+                "Name": "ProxyProtocol",
+                "Value": "true"
+              }
+            ],
+            "InstancePorts": [
+              "50443"
+            ]
+          }
+        ],
+        "Subnets": [
+          {
+            "Ref": "publicSubnet1"
+          },
+          {
+            "Ref": "publicSubnet2"
+          }
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "2",
+          "Interval": "20",
+          "Target": "TCP:50443",
+          "Timeout": "5",
+          "UnhealthyThreshold": "6"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "1800"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "1020"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt":["sgElbConnector","GroupId"]
+          }
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "50443",
+            "LoadBalancerPort": "50443",
+            "Protocol": "SSL",
+            "InstanceProtocol": "TCP",
+            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-connector-2019-7-13",
+            "PolicyNames": [
+              "AWSConsole-SSLNegotiationPolicy-prd-elb-connector-0-1442316562490"
+            ]
+          }
+        ],
+        
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-elb-connector-0"
+          }
+        ],
+        "LoadBalancerName":"preprd-elb-connector-0"
+      }
+    },
+    "sgElbConnector":{
+		"Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbconnector",
+		"Properties" : {
+			"GroupDescription" : "security for connector elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "50443",
+				"ToPort" : "50443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-connector"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+	},
+    "elbAppserver0": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbappserver",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "AWSConsole-SSLNegotiationPolicy-prd-elb-appserver-0-1442316614542",
+            "PolicyType": "SSLNegotiationPolicyType",
+            "Attributes": [
+              {
+                "Name": "Reference-Security-Policy",
+                "Value": "ELBSecurityPolicy-2015-05"
+              }
+            ]
+          }
+        ],
+        "Subnets": [
+          {
+            "Ref": "publicSubnet1"
+          },
+          {
+            "Ref": "publicSubnet2"
+          }
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:8080/",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt":["sgElbAppserver","GroupId"]
+          }
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "8080",
+            "LoadBalancerPort": "443",
+            "Protocol": "HTTPS",
+            "InstanceProtocol": "HTTP",
+            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+            "PolicyNames": [
+              "AWSConsole-SSLNegotiationPolicy-prd-elb-appserver-0-1442316614542"
+            ]
+          }
+        ],
+        "LoadBalancerName":"preprd-elb-appserver-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-elb-appserver-0"
+          }
+        ]
+      }
+    },
+    "sgElbAppserver":{
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbappserver",
+		"Properties" : {
+			"GroupDescription" : "security for appserver elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "443",
+				"ToPort" : "443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-appserver"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+    },
+    "elbAccountWeb0": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbaccountweb",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "AWSConsole-SSLNegotiationPolicy-prd-elb-accountweb-0-1442316714586",
+            "PolicyType": "SSLNegotiationPolicyType",
+            "Attributes": [
+              {
+                "Name": "Reference-Security-Policy",
+                "Value": "ELBSecurityPolicy-2015-05"
+              }
+            ]
+          }
+        ],
+        "Subnets": [
+          {
+            "Ref": "publicSubnet1"
+          },
+          {
+            "Ref": "publicSubnet2"
+          }
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "TCP:9080",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": ["sgElbAccountweb","GroupId"]
+          }
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "9080",
+            "LoadBalancerPort": "443",
+            "Protocol": "HTTPS",
+            "InstanceProtocol": "HTTP",
+            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+            "PolicyNames": [
+              "AWSConsole-LBCookieStickinessPolicy-prd-elb-accountweb-0-1442367843897",
+              "AWSConsole-SSLNegotiationPolicy-prd-elb-accountweb-0-1442316714586"
+            ]
+          }
+        ],
+        "LBCookieStickinessPolicy": [
+          {
+            "PolicyName": "AWSConsole-LBCookieStickinessPolicy-prd-elb-accountweb-0-1442367843897",
+            "CookieExpirationPeriod": "3600"
+          }
+        ],
+        "LoadBalancerName":"preprd-elb-accountweb-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "preprd-elb-accountweb-0"
+          }
+        ]
+      }
+    },
+    "sgElbAccountweb":{
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbaccountweb",
+		"Properties" : {
+			"GroupDescription" : "security for accountweb elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "443",
+				"ToPort" : "443",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-accountweb"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+    },
+    "elbAppserverInternal0": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Condition":"elbapperverinternal",
+      "Properties": {
+        "Subnets": [
+          {"Ref":"privateSubnet1"},
+          {"Ref":"privateSubnet2"}
+        ],
+        "Scheme":"internal",
+        "HealthCheck": {
+          "HealthyThreshold": "3",
+          "Interval": "20",
+          "Target": "HTTP:8080/",
+          "Timeout": "5",
+          "UnhealthyThreshold": "3"
+        },
+        "ConnectionDrainingPolicy": {
+          "Enabled": "true",
+          "Timeout": "300"
+        },
+        "ConnectionSettings": {
+          "IdleTimeout": "60"
+        },
+        "CrossZone": "true",
+        "SecurityGroups": [
+          {"Fn::GetAtt":["sgElbAppserverInternal","GroupId"]}
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "8080",
+            "LoadBalancerPort": "80",
+            "Protocol": "HTTP",
+            "InstanceProtocol": "HTTP"
+          }
+        ],
+        "LoadBalancerName":"preprd-internal-elb-appserver-0",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "prd-internal-elb-appserver-0"
+          }
+        ]
+      }
+    },
+    "sgElbAppserverInternal":{
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Condition":"elbapperverinternal",
+		"Properties" : {
+			"GroupDescription" : "security for accountweb elb",
+			"SecurityGroupIngress" : [{
+				"IpProtocol" : "tcp",
+				"FromPort" : "80",
+				"ToPort" : "80",
+				"CidrIp" : "0.0.0.0/0"
+			}],
+			"Tags" : [{
+				"Key" : "Name",
+				"Value" : "sg-elb-appserverinternal"
+			}],
+			"VpcId" : {"Ref":"vpcId"}
+		}
+    }
+  }
+}

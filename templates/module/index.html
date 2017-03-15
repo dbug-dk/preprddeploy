@@ -258,6 +258,10 @@
                     label: "更新版本",
                     name: "update_version"
                 },{
+                    label: "实例数量",
+                    name: "instance_count",
+                    default: 2
+                },{
                     label: "模块类型",
                     name: "module_type",
                     type: "select",
@@ -267,7 +271,7 @@
                         {label: "other", value: "other"}
                     ]
                 },{
-                    label: "区域",
+                    label: "区域（缩写，逗号隔开）",
                     name: "regions"
                 },
                 {
@@ -277,7 +281,8 @@
                 },
                 {
                     label: "部署顺序",
-                    name: "order"
+                    name: "order",
+                    default: -1
                 }
             ]
         });
@@ -310,6 +315,10 @@
                 }
                 if(!updateVersion.val()&&!currentVersion.val()) {
                     currentVersion.error('更新版本号与当前版本号不能同时为空！')
+                }
+                var regions = editor.field('regions');
+                if (!regions.val()) {
+                    regions.error('区域不能为空')
                 }
                 // If any error was reported, cancel the submission so it can be corrected
                 if ( this.inError() ) {

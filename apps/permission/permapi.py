@@ -12,7 +12,7 @@ from guardian.core import ObjectPermissionChecker
 from guardian.shortcuts import get_objects_for_user
 from guardian.shortcuts import get_perms_for_model
 
-from apps.permission.models import SitePage
+from permission.models import SitePage
 
 logger = logging.getLogger('common')
 

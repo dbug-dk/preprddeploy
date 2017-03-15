@@ -7,15 +7,16 @@
 import json
 import logging
 
+import re
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.common.models import RegionInfo, AwsAccount
-from apps.module.models import ScriptExecLog, ModuleInfo
-from apps.permission.models import SitePage
-from apps.permission.permapi import UserPerm
+from common.models import RegionInfo, AwsAccount
+from module.models import ScriptExecLog, ModuleInfo
+from permission.models import SitePage
+from permission.permapi import UserPerm
 
 logger = logging.getLogger('common')
 
@@ -86,3 +87,31 @@ def show_modules(request):
     for module in modules:
         result.append(module.to_dict(has_operate_perm))
     return HttpResponse(json.dumps({"data": result}))
+
+
+def update_module_info(request):
+    post_params = {}
+    method = None
+    for key in request.POST:
+        if key == 'action':
+            method = request.POST.get(key)
+            continue
+        module_name, _, field_name = re.split('\]|\[', key)[1:4]
+        field_value = request.POST.get(key)
+        post_params.update({field_name: field_value})
+    logger.debug('update module args: %s' % post_params)
+    if method == 'create':
+        module_info = ModuleInfo.create_module(post_params)
+        return HttpResponse(json.dumps({
+            'data': [module_info]
+        }))
+    elif method == 'remove':
+        ModuleInfo.delete_module(post_params)
+        return HttpResponse(json.dumps({'data': 'success'}))
+    elif method == 'edit':
+        module_info = ModuleInfo.edit_module(post_params)
+        return HttpResponse(json.dumps({'data': [module_info]}))
+    else:
+        return HttpResponse('method not correct, update module info failed')
+
+# todo: view and edit launch parameter

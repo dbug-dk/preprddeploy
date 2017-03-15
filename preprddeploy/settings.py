@@ -50,9 +50,10 @@ INSTALLED_APPS = (
     'guardian',
     'django_ses',
     'djcelery',
-    'apps.common',
-    'apps.permission',
-    'apps.module'
+    'common',
+    'permission',
+    'module',
+    'elb'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -195,6 +196,25 @@ LOGGING = {
             'level': 'DEBUG'
         }
     }
+}
+
+PREPRD_VPC = {
+    "cn-north-1": ['vpc-prd', 'vpc-8d92d2e8']
+}
+
+ELB_MODULES = {
+        'connector': ['preprd-elb-connector-0'],
+        'appserverinternal': ['preprd-internal-elb-appserver-0'],
+        'account_accountweb': ['preprd-elb-accountweb-0'],  # for en
+        'appserver': ['preprd-elb-appserver-0'],
+        'mail': ['preprd-internal-elb-mail-0'],  # for en: sms?
+        'vaserver': ['preprd-elb-vaserver-0', 'preprd-internal-elb-vaserver-0'],  # for en
+        'sefcore': ['preprd-elb-sefcore-0'],
+        'appconnector': ['preprd-elb-appconnector-0'],
+        'devconnector': ['preprd-elb-devconnector-0'],
+        'eweb': ['preprd-elb-eweb-0'],  # for en
+        'dal': ['preprd-elb-dal-0'],
+        'dalForFailover': ['preprd-elb-hacache-0']
 }
 
 ACCOUNT_NAME = 'beta'

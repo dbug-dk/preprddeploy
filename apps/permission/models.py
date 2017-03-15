@@ -9,6 +9,7 @@ from django.db import models
 PAGE_INDEX = (
     ('permission', u'用户验证与权限管理'),
     ('module', u'模块版本管理'),
+    ('elb', u'负载均衡器管理')
 )
 
 

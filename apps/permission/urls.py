@@ -7,8 +7,8 @@
 import datetime
 from django.conf.urls import url
 
-from apps.permission.forms import BootstrapAuthenticationForm
-from apps.permission.views import login, logout
+from permission.forms import BootstrapAuthenticationForm
+from permission.views import login, logout
 
 urlpatterns = [
     url(r'^login$', login, {

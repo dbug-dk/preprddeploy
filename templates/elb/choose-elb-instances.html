@@ -1,0 +1,30 @@
+<div class="row">
+    <div class="col-sm-5" align="right">
+        <select name="from" id="undo_redo" class="form-control" size="13" multiple="multiple">
+        {% if unregistered_instances %}
+            {% for instance_info in unregistered_instances%}
+            <option value="{{instance_info.0}}">{{instance_info.1}}({{instance_info.0}})</option>
+            {% endfor %}
+        {% endif %}
+        </select>
+    </div>
+    
+    <div class="col-xs-2">
+        <button type="button" id="undo_redo_undo" class="btn btn-primary btn-block">undo</button>
+        <button type="button" id="undo_redo_rightAll" class="btn btn-default btn-block"><i class="glyphicon glyphicon-forward"></i></button>
+        <button type="button" id="undo_redo_rightSelected" class="btn btn-default btn-block"><i class="glyphicon glyphicon-chevron-right"></i></button>
+        <button type="button" id="undo_redo_leftSelected" class="btn btn-default btn-block"><i class="glyphicon glyphicon-chevron-left"></i></button>
+        <button type="button" id="undo_redo_leftAll" class="btn btn-default btn-block"><i class="glyphicon glyphicon-backward"></i></button>
+        <button type="button" id="undo_redo_redo" class="btn btn-warning btn-block">redo</button>
+    </div>
+    
+    <div class="col-xs-5">
+        <select name="to" id="undo_redo_to" class="form-control" size="13" multiple="multiple">
+        {% if registered_instances %}
+            {% for instance_info in registered_instances%}
+            <option value="{{instance_info.0}}">{{instance_info.1}}({{instance_info.0}})</option>
+            {% endfor %}
+        {% endif %}
+        </select>
+    </div>
+</div>

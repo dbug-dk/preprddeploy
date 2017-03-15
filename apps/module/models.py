@@ -10,7 +10,8 @@ import logging
 from django.contrib.auth.models import User
 from django.db import models
 
-from apps.common.models import RegionInfo, AwsAccount, AwsResource
+from common.models import RegionInfo, AwsAccount, AwsResource
+from preprddeploy.settings import ELB_MODULES
 
 logger = logging.getLogger('deploy')
 
@@ -27,13 +28,18 @@ class ModuleInfo(models.Model):
     order = models.IntegerField(default=-1)
 
     def __unicode__(self):
-        regions = self.regions.all()
-        regionabbrs = []
-        for region in regions:
-            regionabbrs.append(region.abbr)
-        return self.module_name + '|' + ','.join(regionabbrs) + '|' + self.module_type
+        region_abbrs = self.__get_abbrs()
+        return self.module_name + '|' + ','.join(region_abbrs) + '|' + self.module_type
 
-    def to_dict(self, bool_operate):
+    def __get_abbrs(self):
+        regions = self.regions.all()
+        region_abbrs = []
+        for region in regions:
+            region_abbrs.append(region.abbr)
+        region_abbrs.sort()
+        return region_abbrs
+
+    def to_dict(self, bool_operate=True):
         """
         return dict for current module info to be shown in datatables
         Args:
@@ -72,13 +78,66 @@ class ModuleInfo(models.Model):
         return {'user': self.user.username}
 
     def deal_field_regions(self):
-        regions = self.regions.all()
-        region_abbrs = []
-        for region in regions:
-            region_abbrs.append(region.abbr)
+        region_abbrs = self.__get_abbrs()
         return {'regions': ','.join(region_abbrs)}
 
-     # def save_new_model(self):
+    @staticmethod
+    def create_module(post_params):
+        """
+        Args:
+            post_params (dict): post parameters when creating new model.
+                        example: {
+                                    u'module_name': u'test',
+                                    u'current_version': u'1.0.0',
+                                    u'update_version': u'1.0.1',
+                                    u'instance_count': u'2',
+                                    u'module_type': u'standard',
+                                    u'order': u'1',
+                                    u'user': u'root',
+                                    u'regions': u'cn1',
+                                }
+        """
+        module_obj = ModuleInfo()
+        region_abbrs = post_params.pop('regions').split(',')
+        module_user = post_params.pop('user')
+        for key, value in post_params.items():
+            setattr(module_obj, key, value)
+        module_name = post_params['module_name']
+        if module_name in ELB_MODULES:
+            module_obj.elb_names = ','.join(ELB_MODULES[module_name])
+        module_obj.user = User.objects.get(username=module_user)
+        module_obj.save()
+        regions_obj = RegionInfo.objects.filter(abbr__in=region_abbrs)
+        for region_obj in regions_obj:
+            module_obj.regions.add(region_obj)
+        # todo: create default launch params for module
+        return module_obj.to_dict()
+
+    @staticmethod
+    def delete_module(post_params):
+        module_name = post_params['module_name']
+        module = ModuleInfo.objects.get(module_name=module_name)
+        module.delete()
+
+    @staticmethod
+    def edit_module(post_params):
+        """
+        update module info
+        Args:
+            post_params (dict): post parameters when edit module.
+                                only current_version, update_version, instance_count, user, order
+        """
+        cannot_edit = ['module_name', 'module_type', 'regions']
+        username = post_params.pop('user')
+        module = ModuleInfo.objects.get(module_name=post_params['module_name'])
+        module.user = User.objects.get(username=username)
+        for key, value in post_params.items():
+            if key not in cannot_edit:
+                setattr(module, key, value)
+        module.save()
+        return module.to_dict()
+
+
     #     region = self.region
     #     if region == 'cn-north-1':
     #         account_name = 'cn-%s' % ACCOUNT_NAME

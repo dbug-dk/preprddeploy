@@ -14,7 +14,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url, render
 from django.utils.http import is_safe_url, urlquote
 
-from apps.permission.forms import BootstrapAuthenticationForm
+from permission.forms import BootstrapAuthenticationForm
 from preprddeploy import settings
 from preprddeploy.settings import LOGIN_URL
 
