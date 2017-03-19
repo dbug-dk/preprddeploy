@@ -77,10 +77,13 @@
                     <div class="sidebar-nav navbar-collapse">
                         <ul class="nav" id="side-menu">
                             <li>
-                                <a href="/?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i> Dashboard</a>
+                                <a href="/?region={{current_region}}"><i class="fa fa-bar-chart-o fa-fw"></i>模块信息管理</a>
                             </li>
                             <li>
-                                <a href="/elb/home?region={{current_region}}"><i class="fa fa-retweet fa-fw"></i>Pre-PRD负载均衡器管理</a>
+                                <a href="/elb/home?region={{current_region}}"><i class="fa fa-retweet fa-fw"></i>负载均衡器管理</a>
+                            </li>
+                            <li>
+                                <a href="/basic/home?region={{current_region}}"><i class="fa fa-table fa-fw"></i>基础服务管理</a>
                             </li>
                             {% comment %}
                             <li>
@@ -89,9 +92,7 @@
                             <li>
                                 <a href="/uploader/upload_file?region={{current_region}}"><i class="fa fa-book fa-fw"></i>文件上传</a>
                             </li>
-                            <li>
-                                <a href="/basic/show_basic_service_details?region={{current_region}}"><i class="fa fa-table fa-fw"></i>Pre-PRD基础服务管理</a>
-                            </li>
+
                             <li>
                                 <a href="/business/show_preprd_instances?region={{current_region}}"><i class="fa fa-table fa-fw"></i>Pre-PRD业务实例管理</a>
                             </li>

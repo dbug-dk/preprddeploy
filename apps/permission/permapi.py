@@ -50,8 +50,8 @@ class UserPerm(object):
         """
         check if user has perm(permName) for specify site.
         Args:
-            perm_name (basestring): permission name
-            site_name (basestring): site name in table SitePage
+            perm_name (string): permission name
+            site_name (string): site name in table SitePage
         """
         try:
             site = SitePage.objects.get(name=site_name)
@@ -65,8 +65,8 @@ class UserPerm(object):
         """
         get models objects that self.user has perm
         Args:
-            appname (basestring): app name, such as permission, module, ec2launcher and so on.
-            perm_name (basestring): permission name of models
+            appname (string): app name, such as permission, module, ec2launcher and so on.
+            perm_name (string): permission name of models
         """
         try:
             model_objects = get_objects_for_user(self.user, '%s.%s' % (appname, perm_name))

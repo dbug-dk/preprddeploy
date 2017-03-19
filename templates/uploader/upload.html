@@ -1,0 +1,120 @@
+{% extends 'layout/layout.html' %}
+{% load staticfiles %}
+{% load guardian_tags %}
+{% block title%}
+文件上传
+{% endblock %}
+{% block css %}
+<link href="{% static 'uploader/css/uploader.css' %}" rel="stylesheet" />
+<link href="{% static 'uploader/css/demo.css' %}" rel="stylesheet" />
+<style>
+.progress span {
+    position: absolute;
+    display: block;
+    width: 100%;
+    color: black;
+}
+</style>
+
+{% endblock %} 
+
+{% block content %}
+{% get_obj_perms request.user for uploader_page as "page_perms" %}
+{% if 'view' in page_perms %}
+<ul class="nav nav-tabs">
+    <li class="active">
+        <a href="#upload-conf" data-toggle="tab" aria-expanded="true">包上传</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="upload-conf">
+        <div class="row demo-columns">
+            <div class="col-md-6">
+                <div id="drag-and-drop-zone" class="uploader">
+                    <div>请将包（.zip）拖拽到此处上传</div>
+                </div>
+                <div class="browser">
+                    <label>
+                        <span>
+                            <i class="fa fa-plus"></i>
+                            添加文件
+                        </span>
+                        <input type="file" name="files[]" multiple="multiple" title="Click to add Files" />
+                    </label>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                  <div class="panel-heading">
+                      <h3 class="panel-title">Debug</h3>
+                  </div>
+                  <div class="panel-body demo-panel-debug">
+                      <ul id="demo-debug">
+                          <li class="demo-default"></li>
+                      </ul>
+                  </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Uploads</h3>
+                </div>
+                <div class="panel-body demo-panel-files" id="demo-files">
+                    <span class="demo-note">No Files have been selected/droped yet...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<h3 class="text-danger">你没有权限查看当前页面</h3>
+{% endif %}
+{% endblock %} 
+{% block script %}
+<script src="{% static 'uploader/js/demo.min.js'%}"></script>
+<script src="{% static 'uploader/js/dmuploader.min.js'%}"></script>
+<script>
+    $('#drag-and-drop-zone').dmUploader({
+        url: 'upload_file',
+        dataType: 'html',
+        extFilter: 'zip;',
+        extraData:{
+            'region':'{{current_region}}'
+        },
+        onInit: function() {
+            $.danidemo.addLog('#demo-debug', 'default', 'Plugin initialized correctly');
+        },
+        onBeforeUpload: function(id) {
+            $.danidemo.addLog('#demo-debug', 'default', 'Starting the upload of #' + id);
+            $.danidemo.updateFileStatus(id, 'default', 'Uploading...');
+        },
+        onNewFile: function(id, file) {
+            $.danidemo.addFile('#demo-files', id, file);
+        },
+        onComplete: function() {
+            $.danidemo.addLog('#demo-debug', 'default', 'All pending tranfers completed');
+        },
+        onUploadProgress: function(id, percent) {
+            var percentStr = percent + '%';
+            $.danidemo.updateFileProgress(id, percentStr);
+        },
+        onUploadSuccess: function(id, data) {
+            $.danidemo.addLog('#demo-debug', 'success', 'Upload of file #' + id + ' completed');
+            $.danidemo.addLog('#demo-debug', 'info', 'Server Response for file #' + id + ': ' + JSON.stringify(data));
+            $.danidemo.updateFileStatus(id, 'success', 'Upload Complete');
+            $.danidemo.updateFileProgress(id, '100%');
+        },
+        onUploadError: function(id, message) {
+            $.danidemo.updateFileStatus(id, 'error', message);
+            $.danidemo.addLog('#demo-debug', 'error', 'Failed to Upload file #' + id + ': ' + message);
+        },
+        onFileSizeError: function(file) {
+            $.danidemo.addLog('#demo-debug', 'error', 'File \'' + file.name + '\' cannot be added: size excess limit');
+        },
+        onFallbackMode: function(message) {
+            $.danidemo.addLog('#demo-debug', 'info', 'Browser not supported(do something else here!): ' + message);
+        }
+    })
+</script>
+{% endblock %}
+ 

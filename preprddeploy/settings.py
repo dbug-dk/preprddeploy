@@ -53,7 +53,8 @@ INSTALLED_APPS = (
     'common',
     'permission',
     'module',
-    'elb'
+    'elb',
+    'basicservice'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -218,3 +219,4 @@ ELB_MODULES = {
 }
 
 ACCOUNT_NAME = 'beta'
+HOME_PATH = '/home/ubuntu'

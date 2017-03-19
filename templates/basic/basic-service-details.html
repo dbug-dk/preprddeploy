@@ -1,0 +1,252 @@
+{% extends 'layout/layout.html'%}
+{% load staticfiles %}
+{% load guardian_tags %}
+{% block title %}
+基础服务管理
+{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'basic/css/bootstrap-table-expandable/bootstrap-table-expandable.css' %}">
+<style>
+.td-vertical-middle{
+    vertical-align:middle;
+}
+</style>
+{% endblock %}
+{% block content %}
+{% get_obj_perms request.user for basic_service_page as "page_perms" %}
+{% if 'view' in page_perms %}
+<h3 class="page-header">PrePrd环境-基础服务实例</h3>
+{% for order, service_infos in basic_service_infos.items %}
+<div id="start_service_{{ order }}">
+    <h4 class="page-header">第{{ order }}轮启动</h4>
+    {% if 'operate' in page_perms %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="btn-group" role="group" aria-label="...">
+                <button class="btn btn-primary btn-sm" type="button" onclick="startAllService({{ order }})">
+                    <i class="fa fa-play"></i>
+                    启动
+                </button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="stopAllService({{ order }})">
+                    <i class="fa fa-power-off"></i>
+                    停止
+                </button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="refresh()">
+                    <i class="fa fa-refresh"></i>
+                    刷新
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <table class="table table-hover table-expandable">
+        <thead>
+            <tr>
+                <th width="5%">
+                    <input type="checkbox" id="select-all-{{ order }}" class="select-all">
+                </th>
+                <th width="10%">服务名</th>
+                <th width="10%">实例数量</th>
+                <th width="10%">实例状态</th>
+                <th width="20%" class="text-center">服务状态</th>
+                {% if 'operate' in basicServicePagePerms %}
+                <th width="30%">操作</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for service_name, service_info in service_infos.items %}
+            <tr id='{{service_name}}'>
+                <td>
+                    <input type="checkbox" class='checkbox-{{service_name}}'>
+                </td>
+                <td class="td-vertical-middle">{{service_name}}</td>
+                <td class="td-vertical-middle">{{service_info.total_count}}个实例</td>
+                <td class="td-vertical-middle">{{service_info.running_count}}台实例正在运行</td>
+                <td class="td-vertical-middle text-center">
+                      {% if service_info.service_state %}
+                      <span class="label label-warning">
+                         tbd
+                      </span>
+                      {% else %}
+                      <span class="label label-danger">
+                         stopped
+                      </span>
+                      {% endif %}
+                </td>
+                {% if 'operate' in page_perms %}
+                <td>
+                    <button class="btn btn-primary btn-sm" type="button" onclick="startService('{{service_name}}')">
+                        <i class="fa fa-play"></i>
+                        启动服务
+                    </button>
+                    <button class="btn btn-primary btn-sm" type="button" onclick="stopService('{{service_name}}')">
+                        <i class="fa fa-power-off"></i>
+                        停止服务
+                    </button>
+                </td>
+                {% endif %}
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th width="10%">实例信息</th>
+                                <th>实例名</th>
+                                <th>私有ip</th>
+                                <th>实例状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tagname, ip, state in service_info.details%}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ tagname }}</td>
+                                <td>{{ ip }}</td>
+                                <td>{{ state }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endfor %}
+{% else %}
+<h3 class="text-danger">你没有权限查看当前页面</h3>
+{% endif %}
+{% endblock %}
+{% block script %}
+<script src="{% static 'basic/js/bootstrap-table-expandable/bootstrap-table-expandable.js' %}"></script>
+<script>
+
+$('input.select-all').on('click',function(){
+    var checkBoxState = $(this).is(':checked');
+    if (checkBoxState){
+        $(this).parents('table').find('input:checkbox').prop('checked', true)
+    }
+    else{
+        $(this).parents('table').find('input:checkbox').prop('checked', false)
+    }
+});
+
+function startService(serviceName){
+    var stateElement = $('#'+ serviceName + ' td:eq(4)');
+    var currentState = stateElement.html();
+    if(stateElement.text().trim() == 'running'){
+        alertMessage(serviceName + '正在运行中！','small');
+        return
+    }
+    stateElement.html('<span class="label label-warning">pending</span>');
+    var startServiceReq = $.ajax({
+        url: "start_basic_service",
+        type: "GET",
+        dataType: "JSON",
+        data: {
+            'service_name': serviceName,
+            'region': region
+        }
+    });
+    startServiceReq.fail(function(request) {
+        alertAjaxError(request);
+        stateElement.html(currentState)
+    });
+    startServiceReq.done(function(data){
+        if(data.ret){
+            stateElement.html('<span class="label label-success">running</span>')
+        }
+        else{
+            alertMessage(serviceName + "启动失败：" + "<br/>" + data.msg);
+            stateElement.html('<span class="label label-danger">stopped</span>')
+        }
+    })
+}
+
+function startAllService(order){
+    $('#start_service_' + order).find('input:checkbox[id!=select-all-' + order + ']:checked').each(function(){
+        var serviceName = $(this).attr('class').split('-')[1];
+        startService(serviceName)
+    })
+}
+
+function stopService(serviceName){
+    var stateElement = $('#'+ serviceName + ' td:eq(4)');
+    if(stateElement.text().trim() == 'stopped'){
+        alertMessage(serviceName + '已经停止！','small');
+        return
+    }
+    stateElement.html('<span class="label label-warning">stopping</span>');
+    var stopServiceReq = $.ajax({
+        url: 'stop_basic_service',
+        type: 'GET',
+        dataType: 'JSON',
+        data: {
+            'service_name': serviceName,
+            'region': region
+        }
+    });
+    stopServiceReq.fail(function(request){
+        alertAjaxError(request);
+        stateElement.html('<span class="label label-warning">tbd</span>');
+        checkServiceState(serviceName)
+    });
+    stopServiceReq.done(function(data){
+        if(data.ret){
+            stateElement.html('<span class="label label-danger">stopped</span>')
+        }
+        else{
+            alertMessage('停止服务' + serviceName + '失败<br/>' + data.msg + '<br/>重新检测服务状态。');
+            stateElement.html('<span class="label label-warning">tbd</span>');
+            checkServiceState(serviceName)
+        }
+    })
+}
+
+function stopAllService(order){
+    $('#start_service_' + order).find('input:checkbox[id!=select-all-' + order + ']:checked').each(function(){
+        serviceName = $(this).attr('class').split('-')[1];
+        stopService(serviceName)
+    })
+}
+
+function checkServiceState(serviceName){
+    var checkServiceReq = $.ajax({
+        url: "check_basic_service",
+        dataType: "json",
+        type: "GET",
+        data: {
+            "service_name": serviceName,
+            "region": region
+        }
+    });
+    checkServiceReq.done(function(data){
+        var serviceName = data.service_name;
+        var serviceState = data.service_state;
+        var serviceStateElement = $('#' + serviceName + ' td:eq(4)');
+        if (serviceStateElement.text().trim() == 'tbd'){
+            if(serviceState){
+                serviceStateElement.html('<span class="label label-success">running</span>')
+            }
+            else{
+                serviceStateElement.html('<span class="label label-danger">stopped</span>')
+            }
+        }
+    })
+}
+
+function refresh(){
+    window.location.reload()
+}
+
+$(document).ready(function(){
+    $(".label-warning").each(function(){
+        var serviceName = $(this).parents('tr').attr('id');
+        checkServiceState(serviceName)
+    })
+});
+</script>
+{% endblock%}

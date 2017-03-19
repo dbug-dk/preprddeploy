@@ -19,7 +19,7 @@ def to_dict(loadbalancer, region, can_operate):
     generate elb infomation dict for datatables.
     Args:
         loadbalancer (dict): a loadbalancer infos return by describe-loadbalancers
-        region (basestring): region name
+        region (string): region name
         can_operate (bool): if has operate permission with elb page
     """
     ret = {}
@@ -99,8 +99,8 @@ def deal_instance_for_elb(elbname, region, instance_ids):
     """
     register or unregister instance for elb
     Args:
-        elbname (basestring): loadbalancer name
-        region (basestring): region name
+        elbname (string): loadbalancer name
+        region (string): region name
         instance_ids (list): instance id list that finally registed in elb.
     """
     registered_instance_ids = get_instances_in_elb(region, elbname)

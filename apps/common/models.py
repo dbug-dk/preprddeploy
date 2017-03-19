@@ -75,14 +75,14 @@ class RegionInfo(models.Model):
         """
         get region attribute(attrName) by region name
         Args:
-            region_name (basestring): region name
-            attribute_name (basestring): region's attribute name. must be one of columns of RegionInfo.
+            region_name (string): region name
+            attribute_name (string): region's attribute name. must be one of columns of RegionInfo.
         """
         region_info_obj = RegionInfo.objects.filter(region=region_name)
         if not region_info_obj:
-            errorMsg = 'no region info of region name: %s' % region_name
-            logger.error(errorMsg)
-            raise Exception(errorMsg)
+            error_msg = 'no region info of region name: %s' % region_name
+            logger.error(error_msg)
+            raise Exception(error_msg)
         return region_info_obj.values_list(attribute_name, flat=True)[0]
 
     @staticmethod
@@ -165,4 +165,3 @@ class AwsResource(models.Model):
 
     def as_option(self):
         return [self.name, self.resource_id]
-

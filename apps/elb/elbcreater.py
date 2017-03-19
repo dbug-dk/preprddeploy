@@ -34,7 +34,7 @@ class LoadBalancerCreater(object):
         """
         read elb-{region}-beta.template and get all elbs in it.
         Args:
-            region (basestring): region name
+            region (string): region name
         """
         elb_cfn_template = ElbCfnTemplate(region)
         template_content = json.loads(elb_cfn_template.get_content())
@@ -54,7 +54,7 @@ class LoadBalancerCreater(object):
         """
         create elb's cloudformation stack in specified region.
         Args:
-            region (basestring): region name
+            region (string): region name
             elbs (list): list of elb names want to create
         """
         aws_session = AwsAccount.get_awssession(region)
@@ -105,7 +105,7 @@ class LoadBalancerCreater(object):
         """
         deal all elbs in stack, add instances to these.
         Args:
-            region (basestring): region name
+            region (string): region name
             elb_names (list): elb name list want to add instances
         """
         thread_pool = threadpool.ThreadPool(cpu_count() * 3)
@@ -126,7 +126,7 @@ class LoadBalancerCreater(object):
         create an elb stack in specify region and wait it create complete.
         after create success, add instances to each elb.
         Args:
-            region (basestring): region name
+            region (string): region name
             elb_list (list): elb name list, if set None or empty, will create all elbs in elb cfn template.
         """
         try:
@@ -194,7 +194,7 @@ class LoadBalancerCreater(object):
     @staticmethod
     def get_instances_of_elb(region, elb_name):
         module_name = elb_api.get_module_name(elb_name)
-        instances = ec2api.find_instances(region, [module_name])
+        instances = ec2api.find_biz_instances(region, [module_name])
         return instances
 
     @staticmethod
