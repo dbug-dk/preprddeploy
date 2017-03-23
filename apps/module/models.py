@@ -24,12 +24,11 @@ class ModuleInfo(models.Model):
     regions = models.ManyToManyField(RegionInfo)
     elb_names = models.CharField(max_length=1000, null=True, blank=True)
     user = models.ForeignKey(User, related_name='module_user', on_delete=models.SET_NULL, null=True)
-    module_type = models.CharField(max_length=10)
     order = models.IntegerField(default=-1)
 
     def __unicode__(self):
         region_abbrs = self.__get_abbrs()
-        return self.module_name + '|' + ','.join(region_abbrs) + '|' + self.module_type
+        return self.module_name + '|' + ','.join(region_abbrs)
 
     def __get_abbrs(self):
         regions = self.regions.all()
@@ -91,7 +90,6 @@ class ModuleInfo(models.Model):
                                     u'current_version': u'1.0.0',
                                     u'update_version': u'1.0.1',
                                     u'instance_count': u'2',
-                                    u'module_type': u'standard',
                                     u'order': u'1',
                                     u'user': u'root',
                                     u'regions': u'cn1',
@@ -127,7 +125,7 @@ class ModuleInfo(models.Model):
             post_params (dict): post parameters when edit module.
                                 only current_version, update_version, instance_count, user, order
         """
-        cannot_edit = ['module_name', 'module_type', 'regions']
+        cannot_edit = ['module_name', 'regions']
         username = post_params.pop('user')
         module = ModuleInfo.objects.get(module_name=post_params['module_name'])
         module.user = User.objects.get(username=username)

@@ -54,7 +54,8 @@ INSTALLED_APPS = (
     'permission',
     'module',
     'elb',
-    'basicservice'
+    'basicservice',
+    'bizmodule'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -218,5 +219,8 @@ ELB_MODULES = {
         'dalForFailover': ['preprd-elb-hacache-0']
 }
 
+TOPO_MODULES = ['nat', 'ci_test', 'dns']
+
 ACCOUNT_NAME = 'beta'
 HOME_PATH = '/home/ubuntu'
+STATIC_DIR = os.path.join(BASE_DIR, 'static')

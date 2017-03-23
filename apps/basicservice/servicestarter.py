@@ -79,7 +79,7 @@ class BasicServiceStarter(object):
             start_result = self.__check_thread_success(regions)
             if not start_result['ret']:
                 return {'ret': False, 'msg': start_result['msg']}
-            logger.info('basic services start success in regions: %s, round: %s' % (regions, round_num))
+            logger.info('basic services started in regions: %s, round: %s' % (regions, round_num))
         return {'ret': True, 'msg': u'所有区域的基础服务启动完毕'}
 
     def __check_thread_success(self, regions):

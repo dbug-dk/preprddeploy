@@ -1,0 +1,49 @@
+[connector-2.0.4]
+172.31.3.133	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.3.134	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[connector:children]
+connector-2.0.4
+[dalForFailover-1.2.7]
+172.31.2.29	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.1.117	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dalForFailover:children]
+dalForFailover-1.2.7
+[appserverinternal-2.1.3]
+172.31.15.9	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.8.191	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[appserverinternal:children]
+appserverinternal-2.1.3
+[sefcore-1.0.6]
+172.31.4.127	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.9.157	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[sefcore:children]
+sefcore-1.0.6
+[appserver-2.1.3]
+172.31.11.222	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.15.48	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[appserver:children]
+appserver-2.1.3
+[dal-1.2.11]
+172.31.15.71	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.7.112	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dal-1.2.7]
+172.31.8.43	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.4.97	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dal:children]
+dal-1.2.11
+dal-1.2.7
+[mail-1.0.0]
+172.31.14.148	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.14.147	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[mail:children]
+mail-1.0.0
+[devconnector-1.0.4]
+172.31.5.183	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.5.143	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[devconnector:children]
+devconnector-1.0.4
+[appconnector-1.4.0]
+172.31.14.210	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.14.211	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[appconnector:children]
+appconnector-1.4.0

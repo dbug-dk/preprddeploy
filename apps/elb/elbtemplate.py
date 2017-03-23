@@ -7,7 +7,7 @@
 import os
 
 from common.models import AwsAccount
-from preprddeploy.settings import BASE_DIR, PREPRD_VPC
+from preprddeploy.settings import STATIC_DIR, PREPRD_VPC
 
 
 class ElbCfnTemplate(object):
@@ -17,7 +17,7 @@ class ElbCfnTemplate(object):
             self.stack_name = 'elb-cn-beta'
         else:
             self.stack_name = 'elb-en-beta'
-        self.elb_template_path = '%s/cfn-template/%s.template' % (os.path.join(BASE_DIR, 'static'),
+        self.elb_template_path = '%s/cfn-template/%s.template' % (STATIC_DIR,
                                                                   self.stack_name
                                                                   )
 

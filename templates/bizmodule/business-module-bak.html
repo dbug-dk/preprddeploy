@@ -1,0 +1,403 @@
+{% extends 'layout/layout.html'%}
+{% load staticfiles %}
+{% load guardian_tags %}
+{% block title %}
+实例管理
+{% endblock %}
+{% block css %}
+<link href="{% static 'common/css/datatables/dataTables.bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'common/css/datatables/dataTables.responsive.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+{% get_obj_perms request.user for bizmodule_page as "page_perms" %}
+{% if 'view' in page_perms %}
+<div class="row">
+    <div class="col-lg-12">
+        <h3 class="page-header">Pre-Prd实例管理</h3>
+    </div>
+</div>
+{% if 'operate' in page_perms %}
+<div class="row"  style="padding-bottom:5px">
+    <div class="col-md-12">
+        <div class="btn-group" role="group" aria-label="...">
+            <button class="btn btn-primary btn-sm" type="button" onclick="startAllInstance()">
+                <i class="fa fa-play"></i>
+                启动
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="stopAllInstance()">
+                <i class="fa fa-power-off"></i>
+                停止
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="restartAllInstance()">
+                <i class="fa fa-repeat"></i>
+                重启
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="checkAllInstance()">
+                <i class="fa fa-eye"></i>
+                检查服务状态
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills">
+            <li class="active"><a href="#topo-layer" data-toggle="tab" aria-expanded="true">拓扑实例</a>
+            </li>
+            <li class=""><a href="#data-access-layer" data-toggle="tab" aria-expanded="true">数据访问层</a>
+            </li>
+            <li class=""><a href="#business-layer" data-toggle="tab" aria-expanded="false">业务层</a>
+            </li>
+            <li class=""><a href="#forwarding-layer" data-toggle="tab" aria-expanded="false">转发层</a>
+            </li>
+            <li class=""><a href="#access-layer" data-toggle="tab" aria-expanded="false">接入层</a>
+            </li>
+            <li class=""><a href="#basic-service-layer" data-toggle="tab" aria-expanded="false">基础服务</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade active in" id="topo-layer">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="dataTable_wrapper">
+                            <table width="100%"
+                                   class="table table-striped table-bordered table-hover instanceInfos" id="topoLayer">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">
+                                            <input type="checkbox" id="select-topoLayer" class="select-all">
+                                        </th>
+                                        <th>实例名</th>
+                                        <th>模块信息</th>
+                                        <th>公有ip</th>
+                                        <th>私有ip</th>
+                                        <th>实例状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="data-access-layer">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="dataTable_wrapper">
+                            <table width="100%"
+                                   class="table table-striped table-bordered table-hover instanceInfos"
+                                   id="dataAccessLayer">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">
+                                            <input type="checkbox" id="select-dataAccessLayer" class="select-all">
+                                        </th>
+                                        <th>实例名</th>
+                                        <th>模块信息</th>
+                                        <th>公有ip</th>
+                                        <th>私有ip</th>
+                                        <th>实例状态</th>
+                                        <th>实例服务状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="business-layer">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="dataTable_wrapper">
+                            <table width="100%"
+                                   class="table table-striped table-bordered table-hover instanceInfos"
+                                   id="businessLayer">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">
+                                            <input type="checkbox" id="select-businessLayer" class="select-all">
+                                        </th>
+                                        <th>实例名</th>
+                                        <th>模块信息</th>
+                                        <th>公有ip</th>
+                                        <th>私有ip</th>
+                                        <th>实例状态</th>
+                                        <th>实例服务状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="forwarding-layer">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="dataTable_wrapper">
+                            <table width="100%"
+                                   class="table table-striped table-bordered table-hover instanceInfos"
+                                   id="forwardingLayer">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">
+                                            <input type="checkbox" id="select-forwardingLayer" class="select-all">
+                                        </th>
+                                        <th>实例名</th>
+                                        <th>模块信息</th>
+                                        <th>公有ip</th>
+                                        <th>私有ip</th>
+                                        <th>实例状态</th>
+                                        <th>实例服务状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="access-layer">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="dataTable_wrapper">
+                            <table width="100%"
+                                   class="table table-striped table-bordered table-hover instanceInfos"
+                                   id="accessLayer">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">
+                                            <input type="checkbox" id="select-accessLayer" class="select-all">
+                                        </th>
+                                        <th>实例名</th>
+                                        <th>模块信息</th>
+                                        <th>公有ip</th>
+                                        <th>私有ip</th>
+                                        <th>实例状态</th>
+                                        <th>实例服务状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="basic-service-layer">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="dataTable_wrapper">
+                            <table width="100%"
+                                   class="table table-striped table-bordered table-hover instanceInfos"
+                                   id="basicService">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">
+                                            <input type="checkbox" id="select-basicService" class="select-all">
+                                        </th>
+                                        <th>实例名</th>
+                                        <th>模块信息</th>
+                                        <th>公有ip</th>
+                                        <th>私有ip</th>
+                                        <th>实例状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                     </div>
+                 </div>
+             </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<h3 class="text-danger">你没有权限查看当前页面</h3>
+{% endif %}
+{% endblock %}
+{% block script %}
+<script src="{% static 'common/js/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'common/js/datatables/dataTables.bootstrap.min.js' %}"></script>
+<script src="{% static 'common/js/datatables/dataTables.responsive.js' %}"></script>
+<script>
+var currentLayer = 'topoLayer';
+
+$('a[data-toggle="tab"]').on('show.bs.tab', function(e){
+    var navTabHtml = e.target;
+    var currentPanelId = $(navTabHtml).attr('href');
+    currentLayer = $(currentPanelId).find('.instanceInfos').attr('id');
+    console.log(currentLayer)
+});
+
+$(document).ready(function() {
+    load_all_tables()
+});
+
+function load_all_tables(){
+    $('table').each(function(){
+        var tableId = $(this).attr('id');
+        var columns = [
+            {'data': 'checkbox'},
+            {'data': 'instance_name'},
+            {'data': 'module_info'},
+            {'data': 'public_ip'},
+            {'data': 'private_ip'},
+            {'data': 'instance_state'},
+            {'data': 'module_state'},
+            {'data': 'operations'}
+        ];
+        var columnDefs = [
+            {
+                "orderable": false,
+                "targets": [0,-1]
+            },
+            {
+                "targets": [2],
+                "visible": false,
+                className: 'moduleInfo'
+            },
+            {
+                "targets": [5],
+                className: 'instanceState',
+                "render" : function(data, style, row, meta){
+                    return render_state(data)
+                }
+            },
+            {
+                "targets": [6],
+                className: 'moduleServiceState',
+                "render": function (data, style, row, meta) {
+                    return render_state(data)
+                }
+            }
+        ];
+        if(tableId == "topoLayer" || tableId == "basicService"){
+            columns = [
+                {'data': 'checkbox'},
+                {'data': 'instance_name'},
+                {'data': 'module_info'},
+                {'data': 'public_ip'},
+                {'data': 'private_ip'},
+                {'data': 'instance_state'},
+                {'data': 'operations'}
+            ];
+            columnDefs = [
+                {
+                    "orderable": false,
+                    "targets": [0,-1]
+                },
+                {
+                    "targets": [2],
+                    "visible": false,
+                    className: 'moduleInfo'
+                },
+                {
+                    "targets": [5],
+                    className: 'instanceState',
+                    "render": function(data, style, row, meta){
+                        return render_state(data)
+                    }
+                }
+            ]
+        }
+        $(this).DataTable({
+            "ajax":{
+                "url": "show_instances",
+                "type": "GET",
+                "data": {
+                    "table_id": tableId,
+                    "region": region
+                },
+                "dataType": 'json'
+            },
+
+            'dom': 'fti',
+            'pageLength': -1,
+            "columns": columns,
+            "rowId" : "instance_id",
+            "order": [[1,'asc']],
+            "columnDefs": columnDefs,
+            "responsive": false
+        })
+    })
+}
+
+function render_state(stateName){
+    if(stateName == "running"){
+        return '<span class="label label-success">running</span>'
+    }
+    else if(stateName == "stopped"){
+        return '<span class="label label-danger">stopped</span>'
+    }
+    else{
+        return '<span class="label label-warning">' + data + '</span>'
+    }
+}
+
+$('.select-all').on('click',function(){
+    var controlCheckboxState = $(this).is(':checked');
+    var tableId = $(this).parents('table').attr('id');
+    if(controlCheckboxState){
+        $('#'+ tableId + ' :checkbox').each(function(){
+            $(this).prop('checked',true)
+        })
+    }
+    else{
+        $('#'+ tableId + ' :checkbox').each(function(){
+            $(this).prop('checked',false)
+        })
+    }
+});
+
+function startInstance(instanceId){
+    var instanceStateElement = $('#'+ instanceId + ' td:eq(4)');
+    if(instanceStateElement.text().trim() == 'running'){
+        alertMessage('实例已经启动！','small');
+        return
+    }
+    var moduleInfo = $('#' + currentLayer).DataTable().cell('#' + instanceId, '.moduleInfo').data();
+    instanceStateElement.html('<span class="label label-warning">pending</span>');
+    var startInstanceReq = $.ajax({
+        url: "start_instance",
+        type: "GET",
+        dataType: "JSON",
+        data: {
+            'instance_id': instanceId,
+            'region': region,
+            'layer_name': currentLayer,
+            'module_info': moduleInfo
+        }
+    });
+    startInstanceReq.done(function(data){
+        var instanceTableId = data.instanceTableId
+        var instanceState = data.startResult
+        var serviceState = data.serviceState
+        var instanceRow = $('#' + instanceTableId).DataTable().row('#' + instanceId)
+        var rowData = instanceRow.data()
+        if(instanceState=="running"){
+            rowData['moduleState'] = serviceState.toString()
+            rowData['instanceState'] = 'running'
+            instanceRow.data(rowData).draw()
+        }
+        else{
+            alertMessage("实例启动失败：" + instanceId + "<br/>" + data)
+            instanceRow.data(rowData).draw()
+        }
+    })
+}
+</script>
+{% endblock %}

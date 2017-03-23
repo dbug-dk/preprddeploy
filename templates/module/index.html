@@ -101,7 +101,6 @@
                             <th>模块名</th>
                             <th>当前版本</th>
                             <th>更新版本</th>
-                            <th>模块类型</th>
                             <th>区域</th>
                             <th>负责人</th>
                             <th>部署顺序</th>
@@ -262,15 +261,6 @@
                     name: "instance_count",
                     default: 2
                 },{
-                    label: "模块类型",
-                    name: "module_type",
-                    type: "select",
-                    options: [
-                        {label: "standard", value: "standard"},
-                        {label: "tomcat", value: "tomcat"},
-                        {label: "other", value: "other"}
-                    ]
-                },{
                     label: "区域（缩写，逗号隔开）",
                     name: "regions"
                 },
@@ -361,7 +351,6 @@
                 {"data": "module_name"},
                 {"data": "current_version"},
                 {"data": "update_version"},
-                {"data": "module_type"},
                 {"data": "regions"},
                 {"data": "user"},
                 {"data": "order"},
@@ -375,7 +364,7 @@
                     "orderable":false
                 },
                 {
-                    "targets":[2,3,6,7],
+                    "targets":[2,3,5,6],
                     className:"editable"
                 }
             ],

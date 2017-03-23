@@ -1,8 +1,11 @@
 import logging
+
 try:
     from ansible.runner import Runner
+    from ansible.inventory import Inventory
 except ImportError:
     Runner = None  # will not run in windows
+    Inventory = None
 
 logger = logging.getLogger('common')
 
@@ -14,53 +17,39 @@ class AnsibleRunner(object):
     def __init__(self):
         self.results_raw = {}
 
-    def run_ansible(self, module_name='shell', module_args='', ip='', keyfile='', become=False):
+    def run_ansible(self, module_name='shell', module_args='', ip='', keyfile='',
+                    pattern='all', hosts_file=None, become=False):
         """
         run module use ansible ad-hoc.
         Args:
             module_name (string): ansible module name
             module_args (string): ansible module arg
-            ip (string): destination ip, if ip more than one, use comma split
+            ip (string): destination ip, if ip more than one, use comma split, when set this, must specify keyfile
             keyfile (string): ssh private key file path
+            pattern (string): specify hosts by pattern
+            hosts_file (string): hosts file path
             become (bool): if true, will run command in remote instance use root.
                            if false, user as same as current instance user(ubuntu).
         """
         logger.debug('execute ansible module: %s, args: %s in instances: %s' % (module_name,
                                                                                 module_args,
                                                                                 ip))
-        hoc = Runner(module_name=module_name,
-                     module_args=module_args,
-                     host_list=ip.split(','),
-                     private_key_file=keyfile,
-                     become=become,
-                     )
+        if ip:
+            hoc = Runner(module_name=module_name,
+                         module_args=module_args,
+                         host_list=ip.split(','),
+                         private_key_file=keyfile,
+                         become=become,
+                         )
+        else:
+            inventory = Inventory(hosts_file)
+            hoc = Runner(module_name=module_name,
+                         module_args=module_args,
+                         inventory=inventory,
+                         pattern=pattern
+                         )
         self.results_raw = hoc.run()
         logger.debug('ansible results: %s' % self.results_raw)
-    
-    def deal_module_state_results(self):
-        """
-        check result when after check module state
-        """
-        dark = self.results_raw.get('dark')
-        contacted = self.results_raw.get('contacted')
-        if dark:
-            return False
-        if contacted:
-            for host, info in contacted.items():
-                rc = info.get('rc')
-                if rc:
-                    return False
-                stdout = info.get('stdout')
-                if not stdout:
-                    return False
-                stdout_line = stdout.split(' ')
-                keyword_list = [word for word in stdout_line if word.lower() in ['no', 'not']]
-                if keyword_list:
-                    return False
-                else:
-                    return True
-        else:
-            return False
 
     @property
     def results(self):

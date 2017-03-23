@@ -42,9 +42,6 @@ class RegionInfo(models.Model):
             logger.info('no region info found. include %s, exclude: %s' % (include_regions, exclude_regions))
             return []
         region_infos = region_infos_obj.values_list(*columns)
-        if isinstance(region_infos, tuple):
-            logger.debug('only one region in table RegionInfo')
-            return [region_infos]
         return list(region_infos)
 
     @staticmethod

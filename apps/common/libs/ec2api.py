@@ -66,15 +66,18 @@ def find_instances(region, tag_name_patterns, is_running=False):
     return ec2conn.instances.filter(Filters=filters)
 
 
-def find_biz_instances(region, modules):
+def find_biz_instances(region, modules=None):
     """
     find instances for module in region(just scan vpc for preprd)
     Args:
         region (string): region name
-        modules (list): module name list
+        modules (list): module name list, if None, means all modules
     """
     tag_name_pattern = []
-    module_infos = ModuleInfo.objects.filter(module_name__in=modules)
+    if modules is None:
+        module_infos = ModuleInfo.objects.all()
+    else:
+        module_infos = ModuleInfo.objects.filter(module_name__in=modules)
     if not module_infos:
         raise Exception('module name not found in ModuleInfo: %s' % modules)
     for module in module_infos:
