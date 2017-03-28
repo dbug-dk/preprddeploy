@@ -86,12 +86,13 @@ class BizInstanceStarter(object):
         return {'ret': True}
 
     @staticmethod
-    def scan_all_instances(region):
+    def scan_all_instances(region, start_instance=True):
         biz_instances = ec2api.find_biz_instances(region)
         instance_info_dict = {}
         for instance in biz_instances:
             # TODO: start instance now?
-            instance.start()
+            if start_instance:
+                instance.start()
             instance_name = ec2api.get_instance_tag_name(instance)
             ip = instance.private_ip_address
             key_name = instance.key_name
@@ -247,7 +248,7 @@ class BizInstanceStarter(object):
         return {'ret': True}
 
     @staticmethod
-    def check_standard_service(service, region):
+    def check_standard_service(service, region, ips=None):
         logger.info('start to check service: %s status in region: %s' % (service, region))
         service_name, service_version = service.split('-')
         service_bin_folder = '%s/cloud-%s/cloud-%s-%s/bin' % (
@@ -256,9 +257,13 @@ class BizInstanceStarter(object):
             service_name,
             service_version
         )
-        check_cmd = '/bin/bash -c "source /etc/profile;cd %s;./status.sh' % service_bin_folder
+        check_cmd = '/bin/bash -c "source /etc/profile;cd %s;./status.sh"' % service_bin_folder
         hosts_file_path = os.path.join(STATIC_DIR, 'hosts/hosts-%s' % region)
-        return BizInstanceStarter.__get_status(check_cmd, service, hosts_file_path, region)
+        if ips:
+            pattern = ':'.join(ips)
+        else:
+            pattern = service
+        return BizInstanceStarter.__get_status(check_cmd, pattern, hosts_file_path, region)
 
     @staticmethod
     def start_tomcat_service(service, region):
@@ -281,13 +286,13 @@ class BizInstanceStarter(object):
                 json.dumps(failed_infos)
             ))
             return {'ret': False, 'msg': failed_infos}
-        check_result = BizInstanceStarter.check_standard_service(service, region)
+        check_result = BizInstanceStarter.check_tomcat_service(service, region)
         if not check_result['ret']:
             return {'ret': False, 'msg': check_result['msg']}
         return {'ret': True}
 
     @staticmethod
-    def check_tomcat_service(service, region):
+    def check_tomcat_service(service, region, ips=None, retry=True):
         logger.info('start to check service: %s in region: %s' % (service, region))
         wait_time = 60
         start_time = time.time()
@@ -300,9 +305,13 @@ class BizInstanceStarter(object):
         )
         check_cmd = '/bin/bash -c "source /etc/profile;cd %s;./status.sh"' % status_file_path
         hosts_file_path = os.path.join(STATIC_DIR, 'hosts/hosts-%s' % region)
+        if ips:
+            pattern = ':'.join(ips)
+        else:
+            pattern = service
         while True:
-            check_result = BizInstanceStarter.__get_status(check_cmd, service, hosts_file_path, region)
-            if check_result['ret']:
+            check_result = BizInstanceStarter.__get_status(check_cmd, pattern, hosts_file_path, region)
+            if not retry or check_result['ret']:
                 return check_result
             if time.time() - start_time > wait_time:
                 logger.info('tomcat service: %s not running in %s seconds, region: %s' % (

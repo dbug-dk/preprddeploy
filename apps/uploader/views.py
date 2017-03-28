@@ -37,4 +37,4 @@ def upload_file(request):
     current_region = RegionInfo.get_region(request)
     regions = RegionInfo.get_regions_infos(['region', 'chinese_name'], exclude_regions=[current_region])
     uploader_page = SitePage.objects.get(name='uploader')
-    return render(request, 'uploader/upload.html', locals())
+    return render(request, 'uploader/upload_bak.html', locals())

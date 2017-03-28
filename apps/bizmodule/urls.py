@@ -10,5 +10,6 @@ import views
 urlpatterns = [
     url(r'^home$', views.home, name='bizmodule_home'),
     url(r'^show_instances$', views.show_instances, name='show_instances'),
-    url(r'^start_instance$', views.start_instance, name='start_instance')
+    url(r'^check_biz_state$', views.check_biz_state, name='check_biz_state'),
+    url(r'^start_service$', views.start_service, name='start_service')
 ]

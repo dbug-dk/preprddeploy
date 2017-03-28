@@ -14,57 +14,173 @@
     width: 100%;
     color: black;
 }
+
+.script_uploader{
+    -moz-user-select: none;
+    border: 2px dotted #a5a5c7;
+    color: #92aab0;
+    cursor: default;
+    font-size: 200%;
+    margin-bottom: 10px;
+    padding: 19px 0;
+    text-align: center;
+    vertical-align: middle;
+    width: 100%;
+}
+
+.script-panel-files{
+    cursor: default;
+    max-height: 340px;
+    min-height: 340px;
+    overflow: auto;
+}
+
+
 </style>
 
 {% endblock %} 
 
 {% block content %}
-{% get_obj_perms request.user for uploader_page as "page_perms" %}
-{% if 'view' in page_perms %}
+{% get_obj_perms request.user for uploaderPage as "uploaderPagePerms" %}
+{% if 'view' in uploaderPagePerms %}
 <ul class="nav nav-tabs">
-    <li class="active">
-        <a href="#upload-conf" data-toggle="tab" aria-expanded="true">包上传</a>
-    </li>
+  <li class="active">
+    <a href="#upload-conf" data-toggle="tab" aria-expanded="true">配置模板上传</a></li>
+  <li class="">
+    <a href="#upload-install-pack" data-toggle="tab" aria-expanded="true">部署包上传</a></li>
 </ul>
 <div class="tab-content">
-    <div class="tab-pane fade active in" id="upload-conf">
-        <div class="row demo-columns">
-            <div class="col-md-6">
-                <div id="drag-and-drop-zone" class="uploader">
-                    <div>请将包（.zip）拖拽到此处上传</div>
-                </div>
-                <div class="browser">
-                    <label>
-                        <span>
-                            <i class="fa fa-plus"></i>
-                            添加文件
-                        </span>
-                        <input type="file" name="files[]" multiple="multiple" title="Click to add Files" />
-                    </label>
-                </div>
-            </div>
-            <div class="panel panel-default">
-                  <div class="panel-heading">
-                      <h3 class="panel-title">Debug</h3>
-                  </div>
-                  <div class="panel-body demo-panel-debug">
-                      <ul id="demo-debug">
-                          <li class="demo-default"></li>
-                      </ul>
-                  </div>
-            </div>
+  <div class="tab-pane fade active in" id="upload-conf">
+    <div class="row demo-columns">
+      <div class="col-md-6">
+        <!-- D&D Zone-->
+        <div id="drag-and-drop-zone" class="uploader">
+          <div>请将配置文件模板(.template)拖拽到此处上传</div>
+          <div class="or">
+            -配置模块命名规则：${模块名}-sys|log4j-${配置模板版本号}
+          </div>
+          <div class="browser">
+            <label>
+              <span>
+                <i class="fa fa-plus"></i>添加文件</span>
+              <input type="file" name="files[]" multiple="multiple" title="Click to add Files" /></label>
+          </div>
         </div>
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Uploads</h3>
+        <!-- /D&D Zone -->
+        <!-- Debug box -->
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Debug</h3></div>
+          <div class="panel-body demo-panel-debug">
+            <ul id="demo-debug">
+              <li class="demo-default"></li>
+            </ul>
+          </div>
+        </div>
+        <!-- /Debug box --></div>
+      <!-- / Left column -->
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Uploads</h3></div>
+          <div class="panel-body demo-panel-files" id="demo-files">
+            <span class="demo-note">No Files have been selected/droped yet...</span></div>
+        </div>
+      </div>
+      <!-- / Right column --></div>
+  </div>
+  <div class="tab-pane fade" id="upload-install-pack">
+    <div class="panel-group" id="accordion">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" class="">安装包上传（内销）</a></h4>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse in" aria-expanded="true">
+          <div class="panel-body">
+            <div class="alert alert-warning">
+                <li>
+	                <h4>内销环境请直接上传安装包到beta账户的tplinkcloud-beta-deploy桶</h4>
+	            </li>
+	            <li>
+	                <h4>上传路径为：tplinkcloud-beta-deploy/${模块名}/${安装包&&md5文件}</h4>
+	                <br/>
+	                <h3>eg：connector模块的上传路径为：tplinkcloud-beta-deploy/connector/xxx</h3>
+	            </li>
+            </div>
+            
+            <a class="btn btn-primary" href="https://console.amazonaws.cn/s3/home?region=cn-north-1#&amp;bucket=tplinkcloud-beta-deploy" target="_blank">打开上传页面</a></div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" class="collapsed" aria-expanded="false">安装包上传（外销）</a></h4>
+        </div>
+        <div id="collapseThree" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+          <div class="panel-body">
+            <div class="alert alert-warning">
+                <h3 style="margin-top:0px">外销环境上传步骤：</h3>
+                <li>
+                    <h4>将所有安装包按模块名创建文件夹，然后统一进行打包，压缩包后缀名可以是zip或tar[.gz]，包名任意指定。</h4>
+                </li>
+                <li>
+                    <h4>上传压缩包到内销beta账户的tplinkcloud-beta-deploy桶的根目录下。</h4>
+                </li>
+                <li>
+                    <h4>选择要转移到外销s3的安装包文件，开始传输。</h4>
+                </li>
+            </div>
+            <h3>在复制部署安装包到外销s3之前，请确定部署所需的安装压缩包已经上传到内销beta账户的tplinkcloud-beta-deploy桶中</h3>
+            <button class="btn btn-primary" onclick="choosePack()" id="btnChoosePack">选择文件</button>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class='panel panel-info' id="choosePackForm" hidden>
+                        <div class="panel-body">
+                            <h3 style="margin-left:15px">请选择要上传到外销s3上的部署安装包</h3>
+                            <div class="form-horizontal" id="chooseInstallPack">
+                                <div class="form-group">
+                                    <label for="bucketName" class="col-md-2 control-label">s3存储桶：</label>
+                                    <div class="col-md-10">
+                                        <input class="form-control" id="bucketName" type="text" value="tplinkcloud-beta-deploy" disabled>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="selInstallPack" class="col-md-2 control-label">部署安装包：</label>
+                                    <div class="col-md-10">
+                                        <select id="selInstallPack" class="form-control">
+                                            <option>test</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                        <button class="btn btn-default" onclick="transferFile()">传输文件</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="panel-body demo-panel-files" id="demo-files">
-                    <span class="demo-note">No Files have been selected/droped yet...</span>
+                <div class="col-md-6">
+                    <div class="panel panel-default" id="transferProcess" hidden>
+                        <div class="panel-heading">
+                            传输进度
+                        </div>
+                        <div class="panel-body">
+                            <div class="list-group" id="processDetail">
+                                 <!--<li class="list-group-item">step 1</li>
+                                 <li class="list-group-item">step 2</li>-->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 {% else %}
 <h3 class="text-danger">你没有权限查看当前页面</h3>
@@ -74,46 +190,234 @@
 <script src="{% static 'uploader/js/demo.min.js'%}"></script>
 <script src="{% static 'uploader/js/dmuploader.min.js'%}"></script>
 <script>
-    $('#drag-and-drop-zone').dmUploader({
-        url: 'upload_file',
-        dataType: 'html',
-        extFilter: 'zip;',
-        extraData:{
-            'region':'{{current_region}}'
+  $.ready(function(){
+    $('.selectpicker').selectpick()
+    console.log($('.selectpicker').val())
+  })
+  function choosePack(){
+        $('#btnChoosePack').text('正在扫描s3存储桶...')
+        $.ajax({
+            url:"get_install_pack",
+            dataType:"json",
+            type:"GET",
+            error:function(){
+                $('#btnChoosePack').text('获取文件列表出错，点击重新扫描')
+            },
+            success:function(data){
+                var files = data.files
+                var selInstallPack = $('#selInstallPack')
+                selInstallPack.empty()
+                for(var i=0; i<files.length;i++){
+                    selInstallPack.append('<option>'+files[i]+'</option>')
+                }
+                $("#choosePackForm").attr('hidden',false)
+                $('#btnChoosePack').text('重新扫描')
+            }
+        })
+  }
+  
+  function getUploadPercentage(moduleDirPath,totalSize){
+      $.ajax({
+         url:'get_upload_percentage',
+         dataType: 'json',
+         type: 'GET',
+         data:{
+            'dirPath' : moduleDirPath,
+            'totalSize':totalSize
+         },
+         success:function(data){
+            var dirName = data.dirName
+            var uploadedPercent = data.uploadedPercent
+            $('#' + dirName).attr('style','width: ' + uploadedPercent )
+            if(uploadedPercent!='100.00%'){
+                console.log(uploadedPercent)
+                setTimeout(function(){getUploadPercentage(moduleDirPath,totalSize)},1000)
+            }
+         }
+      })
+  }
+  
+  function uploadInstallPacks(downloadFilePath,installPackDirs){
+      $.each(installPackDirs,function(index,dirName){
+          $.ajax({
+              url:'upload_install_packs',
+              dataType:'JSON',
+              type:'GET',
+              data:{
+                'downloadFilePath':downloadFilePath,
+                'installPackDir':dirName
+              },
+              success:function(data){
+                 var moduleDirPath = data.dirPath
+                 var totalSize = parseFloat(data.dirSize)
+                 getUploadPercentage(moduleDirPath,totalSize)
+              }
+          })
+      })
+  }
+  function unpackInstallPack(downloadFilePath){
+      $('#processDetail').append('<li class="list-group-item" id="unpackProcess">解压安装包...</li>')
+      $.ajax({
+        url:"unpack_install_pack",
+        dataType:"json",
+        type:"GET",
+        data:{
+            'install_pack_path':downloadFilePath
         },
-        onInit: function() {
-            $.danidemo.addLog('#demo-debug', 'default', 'Plugin initialized correctly');
+        error:function(xhrRequest){
+            $('#unpackProcess').text('解压安装包失败: '+ xhrRequest.responseText +'</li>')
         },
-        onBeforeUpload: function(id) {
-            $.danidemo.addLog('#demo-debug', 'default', 'Starting the upload of #' + id);
-            $.danidemo.updateFileStatus(id, 'default', 'Uploading...');
-        },
-        onNewFile: function(id, file) {
-            $.danidemo.addFile('#demo-files', id, file);
-        },
-        onComplete: function() {
-            $.danidemo.addLog('#demo-debug', 'default', 'All pending tranfers completed');
-        },
-        onUploadProgress: function(id, percent) {
-            var percentStr = percent + '%';
-            $.danidemo.updateFileProgress(id, percentStr);
-        },
-        onUploadSuccess: function(id, data) {
-            $.danidemo.addLog('#demo-debug', 'success', 'Upload of file #' + id + ' completed');
-            $.danidemo.addLog('#demo-debug', 'info', 'Server Response for file #' + id + ': ' + JSON.stringify(data));
-            $.danidemo.updateFileStatus(id, 'success', 'Upload Complete');
-            $.danidemo.updateFileProgress(id, '100%');
-        },
-        onUploadError: function(id, message) {
-            $.danidemo.updateFileStatus(id, 'error', message);
-            $.danidemo.addLog('#demo-debug', 'error', 'Failed to Upload file #' + id + ': ' + message);
-        },
-        onFileSizeError: function(file) {
-            $.danidemo.addLog('#demo-debug', 'error', 'File \'' + file.name + '\' cannot be added: size excess limit');
-        },
-        onFallbackMode: function(message) {
-            $.danidemo.addLog('#demo-debug', 'info', 'Browser not supported(do something else here!): ' + message);
+        success:function(data){
+            var result = data.result
+            if(!result){
+                var failReason = data.info
+                $('#unpackProcess').text('解压安装包失败: '+ failReason +'</li>')
+            }
+            else{
+                $('#unpackProcess').text('解压安装包: success. ')
+                var uploadText = '上传安装包...'
+                for(var i=0;i<data.info.length;i++){
+                    var moduleName = data.info[i]
+                    var progressHtml = '<div class="progress">\
+                                      <div class="progress-bar progress-bar-success" id="'+ moduleName +'"\
+                                           role="progressbar" aria-valuenow="0" aria-valuemin="0"\
+                                           aria-valuemax="100" style="width: 0%">\
+                                           <span>' + moduleName + '</span>\
+                                      </div>\
+                                    </div>'
+                    if(i%3==0){
+                        uploadText += '<div class="row"><div class="col-md-4">'+ progressHtml + '</div>'
+                    }
+                    else if(i%3==2||i==data.info.length-1){
+                        uploadText += '<div class="col-md-4">'+ progressHtml + '</div></div>'
+                    }
+                    else{
+                        uploadText += '<div class="col-md-4">'+ progressHtml + '</div>'
+                    }
+                }
+                $('#processDetail').append('<li class="list-group-item">' + uploadText + '</li>')
+                uploadInstallPacks(downloadFilePath,data.info)            
+            }
         }
+      })
+  }
+  
+  function getDownloadPercent(downloadFilePath){
+	   $.ajax({
+	       url: 'get_download_percent',
+	       dataType: 'html',
+	       type: 'GET',
+	       data: {
+	           'downloadFilePath' : downloadFilePath
+	       },
+	       error:function(xhrRequest){
+	           $('#downloadProgress').text('--下载失败：' + xhrRequest.responseText)
+	       },
+	       success:function(data){
+	           if(data==''){
+	               getDownloadPercent(downloadFilePath)
+	           }
+	           else{
+	               var infos = data.split('|')
+	               var downloadInfo = infos[0]
+	               var currentPercent = infos[1].trim()
+	               $('#downloadProgress').text('--' + downloadInfo)
+	               $('#downloadProgressBar').attr('style','width: ' + currentPercent)
+	               if(currentPercent!='100.00%'){
+	                   //setTimeout(function(){getDownloadPercent(downloadFilePath)},1000)
+	                   getDownloadPercent(downloadFilePath)
+	               }
+	               else{
+	                   var downloadProgressBar = $('#downloadProgressBar')
+	                   downloadProgressBar.addClass('progress-bar-success')
+	                   downloadProgressBar.parents('.progress').removeClass('active')
+	                   unpackInstallPack(downloadFilePath)
+	               }
+	           }
+	           
+	       }
+	   })
+  }
+  function transferFile(){
+      var processPanel = $('#transferProcess')
+      processPanel.attr('hidden',false)
+      var processDetail = $('#processDetail')
+      processDetail.empty()
+      processDetail.append('<li class="list-group-item">获取安装包信息：doing...</li>')
+      var fileName = $('#selInstallPack').val()
+      if(fileName.startsWith('no file found')){
+          processDetail.find('li:eq(0)').text('获取安装包信息：failed. must choose a package.')
+          return
+      }
+      processDetail.find('li:eq(0)').text('获取安装包信息：success.')
+      processDetail.append('<li class="list-group-item">下载安装包：' + fileName + '<span id="downloadProgress"></span><br/>\
+                                <div class="progress progress-striped active">\
+                                    <div id="downloadProgressBar" class="progress-bar" role="progressbar" style="width: 0%;">\
+                                        <span class="sr-only">0% Complete</span>\
+                                    </div>\
+                                </div>\
+                            </li>')
+      $.ajax({
+          url:"download_s3_file",
+          dataType:"html",
+          type:"GET",
+          data:{
+            fileName:fileName
+          },
+          error:function(XMLHttpRequest){
+            $('#downloadProgress').text('--失败：' + XMLHttpRequest.responseText)
+          },
+          success:function(data){
+            if(data.startsWith('failed')){
+                $('#downloadProgress').text('--' + data)
+            }
+            else{
+                getDownloadPercent(data)
+            }
+          }
+      })
+  }
+  
+  $('#drag-and-drop-zone').dmUploader({
+      url: 'upload_file',
+      dataType: 'html',
+      //extFilter: 'zip;template',
+      extraData:{
+        'region':'{{currentRegion}}'
+      },
+      onInit: function() {
+        $.danidemo.addLog('#demo-debug', 'default', 'Plugin initialized correctly');
+      },
+      onBeforeUpload: function(id) {
+        $.danidemo.addLog('#demo-debug', 'default', 'Starting the upload of #' + id);
+        $.danidemo.updateFileStatus(id, 'default', 'Uploading...');
+      },
+      onNewFile: function(id, file) {
+        $.danidemo.addFile('#demo-files', id, file);
+      },
+      onComplete: function() {
+        $.danidemo.addLog('#demo-debug', 'default', 'All pending tranfers completed');
+      },
+      onUploadProgress: function(id, percent) {
+        var percentStr = percent + '%';
+        $.danidemo.updateFileProgress(id, percentStr);
+      },
+      onUploadSuccess: function(id, data) {
+        $.danidemo.addLog('#demo-debug', 'success', 'Upload of file #' + id + ' completed');
+        $.danidemo.addLog('#demo-debug', 'info', 'Server Response for file #' + id + ': ' + JSON.stringify(data));
+        $.danidemo.updateFileStatus(id, 'success', 'Upload Complete');
+        $.danidemo.updateFileProgress(id, '100%');
+      },
+      onUploadError: function(id, message) {
+        $.danidemo.updateFileStatus(id, 'error', message);
+        $.danidemo.addLog('#demo-debug', 'error', 'Failed to Upload file #' + id + ': ' + message);
+      },
+      onFileSizeError: function(file) {
+        $.danidemo.addLog('#demo-debug', 'error', 'File \'' + file.name + '\' cannot be added: size excess limit');
+      },
+      onFallbackMode: function(message) {
+        $.danidemo.addLog('#demo-debug', 'info', 'Browser not supported(do something else here!): ' + message);
+      }
     })
 </script>
 {% endblock %}

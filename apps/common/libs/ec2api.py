@@ -12,9 +12,10 @@ import subprocess
 
 import re
 
-from common.models import AwsAccount
+from bizmodule.models import BizServiceLayer
+from common.models import AwsAccount, RegionInfo
 from module.models import ModuleInfo
-from preprddeploy.settings import PREPRD_VPC
+from preprddeploy.settings import PREPRD_VPC, TOPO_MODULES
 
 logger = logging.getLogger('common')
 
@@ -66,27 +67,40 @@ def find_instances(region, tag_name_patterns, is_running=False):
     return ec2conn.instances.filter(Filters=filters)
 
 
-def find_biz_instances(region, modules=None):
+def find_biz_instances(region, modules=None, version_filter='all', is_running=False):
     """
     find instances for module in region(just scan vpc for preprd)
     Args:
         region (string): region name
         modules (list): module name list, if None, means all modules
+        version_filter (string): filter instances by version, choices: all, current, update
+        is_running (bool): if True, just return running instances
     """
-    tag_name_pattern = []
     if modules is None:
         module_infos = ModuleInfo.objects.all()
     else:
         module_infos = ModuleInfo.objects.filter(module_name__in=modules)
     if not module_infos:
         raise Exception('module name not found in ModuleInfo: %s' % modules)
+    update_version_patterns = []
+    current_version_patterns = []
     for module in module_infos:
         module_name = module.module_name
         current_version = module.current_version
+        if current_version:
+            current_version_patterns.append('*-%s-%s-*' % (module_name, current_version))
         update_version = module.update_version
-        pattern = ['*-%s-%s-*' % (module_name, version) for version in [current_version, update_version] if version]
-        tag_name_pattern += pattern
-    biz_instances = find_instances(region, tag_name_pattern)
+        if update_version:
+            update_version_patterns.append('*-%s-%s-*' % (module_name, update_version))
+    if version_filter == 'all':
+        tag_name_pattern = current_version_patterns + update_version_patterns
+    elif version_filter == 'current':
+        tag_name_pattern = current_version_patterns
+    elif version_filter == 'update':
+        tag_name_pattern = update_version_patterns
+    else:
+        raise Exception('version filter not correct: %s' % version_filter)
+    biz_instances = find_instances(region, tag_name_pattern, is_running)
     logger.debug('%s instancs are:' % modules)
     for instance in biz_instances:
         logger.debug(instance.private_ip_address)
@@ -98,6 +112,21 @@ def find_basic_instances(region, services):
     for service_name in services:
         tag_name_pattern.append('*-%s-*' % service_name)
     return find_instances(region, tag_name_pattern)
+
+
+def find_all_instance_by_layer(region, layer, version_filter):
+    if layer == 'topoLayer':
+        instance_name_patterns = ['*-%s-*' % module for module in TOPO_MODULES]
+        instances = find_instances(region, instance_name_patterns)
+    elif layer == 'basicService':
+        region_obj = RegionInfo.objects.get(region=region)
+        modules = region_obj.basicservicedeployinfo_set.all().values_list('service_name', flat=True)
+        instance_name_patterns = ['*-%s-*' % module for module in modules]
+        instances = find_instances(region, instance_name_patterns)
+    else:
+        modules = BizServiceLayer.get_modules_by_layer_name(layer, region)
+        instances = find_biz_instances(region, modules, version_filter=version_filter)
+    return instances
 
 
 def fping_instance(instance_ip):

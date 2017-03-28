@@ -19,15 +19,15 @@
 <div class="row"  style="padding-bottom:5px">
     <div class="col-md-12">
         <div class="btn-group" role="group" aria-label="...">
-            <button class="btn btn-primary btn-sm" type="button" onclick="startAllInstance()">
+            <button class="btn btn-primary btn-sm" type="button" onclick="startAllServices()">
                 <i class="fa fa-play"></i>
                 启动
             </button>
-            <button class="btn btn-primary btn-sm" type="button" onclick="stopAllInstance()">
+            <button class="btn btn-primary btn-sm" type="button" onclick="stopAllServices()">
                 <i class="fa fa-power-off"></i>
                 停止
             </button>
-            <button class="btn btn-primary btn-sm" type="button" onclick="restartAllInstance()">
+            <button class="btn btn-primary btn-sm" type="button" onclick="restartAllServices()">
                 <i class="fa fa-repeat"></i>
                 重启
             </button>
@@ -59,24 +59,22 @@
             <div class="tab-pane fade active in" id="topo-layer">
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div class="dataTable_wrapper">
-                            <table width="100%"
-                                   class="table table-striped table-bordered table-hover instanceInfos" id="topoLayer">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">
-                                            <input type="checkbox" id="select-topoLayer" class="select-all">
-                                        </th>
-                                        <th>实例名</th>
-                                        <th>模块信息</th>
-                                        <th>公有ip</th>
-                                        <th>私有ip</th>
-                                        <th>实例状态</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
+                        <div class="table_container">
+                            <div id="toolbar-topoLayer">
+                                <div class="form-inline" role="form">
+                                    <div class="form-group">
+                                        <span>显示过滤：</span>
+                                        <select class="form-control" id="sel-topoLayer">
+                                            <option value="all">显示所有实例</option>
+                                            <option value="current">显示旧版本实例</option>
+                                            <option value="update">显示更新版本实例</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-default" id="ok-topoLayer">OK</button>
+                                </div>
+                            </div>
+                            <table class="table table-bordered table-hover instanceInfos"
+                                   id="topoLayer">
                             </table>
                         </div>
                     </div>
@@ -86,7 +84,7 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="table_container">
-                            <div id="toolbar">
+                            <div id="toolbar-dataAccessLayer">
                                 <div class="form-inline" role="form">
                                     <div class="form-group">
                                         <span>显示过滤：</span>
@@ -109,26 +107,22 @@
             <div class="tab-pane fade" id="business-layer">
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div class="dataTable_wrapper">
-                            <table width="100%"
-                                   class="table table-striped table-bordered table-hover instanceInfos"
+                        <div class="table_container">
+                            <div id="toolbar-businessLayer">
+                                <div class="form-inline" role="form">
+                                    <div class="form-group">
+                                        <span>显示过滤：</span>
+                                        <select class="form-control" id="sel-businessLayer">
+                                            <option value="all">显示所有实例</option>
+                                            <option value="current">显示旧版本实例</option>
+                                            <option value="update">显示更新版本实例</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-default" id="ok-businessLayer">OK</button>
+                                </div>
+                            </div>
+                            <table class="table table-bordered table-hover instanceInfos"
                                    id="businessLayer">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">
-                                            <input type="checkbox" id="select-businessLayer" class="select-all">
-                                        </th>
-                                        <th>实例名</th>
-                                        <th>模块信息</th>
-                                        <th>公有ip</th>
-                                        <th>私有ip</th>
-                                        <th>实例状态</th>
-                                        <th>实例服务状态</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -137,26 +131,22 @@
             <div class="tab-pane fade" id="forwarding-layer">
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div class="dataTable_wrapper">
-                            <table width="100%"
-                                   class="table table-striped table-bordered table-hover instanceInfos"
+                        <div class="table_container">
+                            <div id="toolbar-forwardingLayer">
+                                <div class="form-inline" role="form">
+                                    <div class="form-group">
+                                        <span>显示过滤：</span>
+                                        <select class="form-control" id="sel-forwardingLayer">
+                                            <option value="all">显示所有实例</option>
+                                            <option value="current">显示旧版本实例</option>
+                                            <option value="update">显示更新版本实例</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-default" id="ok-forwardingLayer">OK</button>
+                                </div>
+                            </div>
+                            <table class="table table-bordered table-hover instanceInfos"
                                    id="forwardingLayer">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">
-                                            <input type="checkbox" id="select-forwardingLayer" class="select-all">
-                                        </th>
-                                        <th>实例名</th>
-                                        <th>模块信息</th>
-                                        <th>公有ip</th>
-                                        <th>私有ip</th>
-                                        <th>实例状态</th>
-                                        <th>实例服务状态</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -165,26 +155,22 @@
             <div class="tab-pane fade" id="access-layer">
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div class="dataTable_wrapper">
-                            <table width="100%"
-                                   class="table table-striped table-bordered table-hover instanceInfos"
+                        <div class="table_container">
+                            <div id="toolbar-accessLayer">
+                                <div class="form-inline" role="form">
+                                    <div class="form-group">
+                                        <span>显示过滤：</span>
+                                        <select class="form-control" id="sel-accessLayer">
+                                            <option value="all">显示所有实例</option>
+                                            <option value="current">显示旧版本实例</option>
+                                            <option value="update">显示更新版本实例</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-default" id="ok-accessLayer">OK</button>
+                                </div>
+                            </div>
+                            <table class="table table-bordered table-hover instanceInfos"
                                    id="accessLayer">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">
-                                            <input type="checkbox" id="select-accessLayer" class="select-all">
-                                        </th>
-                                        <th>实例名</th>
-                                        <th>模块信息</th>
-                                        <th>公有ip</th>
-                                        <th>私有ip</th>
-                                        <th>实例状态</th>
-                                        <th>实例服务状态</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -193,25 +179,22 @@
             <div class="tab-pane fade" id="basic-service-layer">
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div class="dataTable_wrapper">
-                            <table width="100%"
-                                   class="table table-striped table-bordered table-hover instanceInfos"
+                        <div class="table_container">
+                            <div id="toolbar-basicService">
+                                <div class="form-inline" role="form">
+                                    <div class="form-group">
+                                        <span>显示过滤：</span>
+                                        <select class="form-control" id="sel-basicService">
+                                            <option value="all">显示所有实例</option>
+                                            <option value="current">显示旧版本实例</option>
+                                            <option value="update">显示更新版本实例</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-default" id="ok-Layer">OK</button>
+                                </div>
+                            </div>
+                            <table class="table table-bordered table-hover instanceInfos"
                                    id="basicService">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">
-                                            <input type="checkbox" id="select-basicService" class="select-all">
-                                        </th>
-                                        <th>实例名</th>
-                                        <th>模块信息</th>
-                                        <th>公有ip</th>
-                                        <th>私有ip</th>
-                                        <th>实例状态</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
                             </table>
                         </div>
                      </div>
@@ -229,6 +212,7 @@
 <script src="{% static 'bizmodule/js/bootstrap-table-zh-CN.min.js' %}"></script>
 <script>
 var currentLayer = 'topoLayer';
+var intervalIds = [];
 
 $('a[data-toggle="tab"]').on('show.bs.tab', function(e){
     var navTabHtml = e.target;
@@ -238,82 +222,139 @@ $('a[data-toggle="tab"]').on('show.bs.tab', function(e){
 
 $(document).ready(function() {
     init_tables();
+    $(window).on('beforeunload', function(){
+        console.log('start to clear intervals');
+        var length = intervalIds.length;
+        for (var i= length; i >= 0; i--){
+            clearInterval(intervalIds.pop())
+        }
+    })
 });
 
 function init_tables(){
-    //$('table').each(function(){
-    var tableId = 'dataAccessLayer';
-            //$(this).attr('id');
-    $('#' + tableId).bootstrapTable({
-        url: 'show_instances',
-        method: 'get',
-        toolbar: '#toolbar',
-        striped: true,
-        cache: false,
-        pagination: false,
-        sortable: true,
-        sortOrder: "asc",
-        queryParams: function queryParams(params){
-            temp = {
-                'region': region,
-                'table_id': tableId,
-                'display_filter': $('#sel-' + tableId).val()
-            };
-            return temp
-        },
-        search: true,
-        showColumns: true,
-        showRefresh: true,
-        minimumCountColumns: 2,
-        clickToSelect: true,
-        uniqueId: "instance_id",
-        showToggle: true,
-        cardView: false,
-        detailView: true,
-        detailFormatter: function(index, row){
-            return row.extra
-        },
-        columns: [
-            {
-                checkbox: true
+    $('table').each(function() {
+        var tableId = $(this).attr('id');
+        var tableObj = $('#' + tableId);
+        tableObj.bootstrapTable({
+            url: 'show_instances',
+            method: 'get',
+            toolbar: '#toolbar-' + tableId,
+            striped: true,
+            cache: false,
+            pagination: false,
+            sortable: true,
+            sortOrder: "asc",
+            queryParams: function queryParams(params) {
+                temp = {
+                    'region': region,
+                    'table_id': tableId,
+                    'display_filter': $('#sel-' + tableId).val()
+                };
+                return temp
             },
-            {
-                "field": "instance_name",
-                "title": "实例名"
+            search: true,
+            showColumns: true,
+            showRefresh: true,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            uniqueId: "module_info",
+            showToggle: true,
+            cardView: false,
+            detailView: true,
+            rowStyle: function (value, row, index) {
+                return {
+                    css: {"vertical-align": "middle"}
+                }
             },
-            {
-                "field": "module_info",
-                "title": "模块信息"
+            detailFormatter: function (index, row) {
+                var instances = row.instances;
+                var htmlPrefix = '<div class="col-md-10 col-md-offset-2">' +
+                        '<table class="table table-responsive table-striped table-hover">' +
+                        '<thead>' +
+                        '<tr style="height:37px;">' +
+                        '<th>实例名</th>' +
+                        '<th>公有ip</th>' +
+                        '<th>私有ip</th>' +
+                        '<th>实例状态</th>' +
+                        '<th>服务状态</th>' +
+                        '</tr>' +
+                        '</thead>' +
+                        '<tbody>';
+                var htmlPostFix = '</tbody></table></div>';
+                var trHtml = '';
+                for (var index in instances) {
+                    var instance = instances[index];
+                    trHtml += ('<tr><td>' + instance.instance_name + '</td><td>' + instance.public_ip +
+                    '</td><td>' + instance.private_ip + '</td><td>' + render_state(instance.instance_state, tableId) +
+                    '</td><td>' + render_state(instance.module_state, tableId, true) + '</td></tr>')
+                }
+                return htmlPrefix + trHtml + htmlPostFix
             },
-            {
-                "field": "public_ip",
-                "title": "公有ip"
-            },
-            {
-                "field": "private_ip",
-                "title": "私有ip"
-            },
-            {
-                "field": "instance_state",
-                "title": "实例状态"
-            },
-            {
-                "field": "module_state",
-                "title": "模块服务状态"
-            },
-            {
-                "field": "operations",
-                "title": "操作"
-            }
-        ]
-    })
-    $('#ok-' + tableId).click(function(){
-        $('#' + tableId).bootstrapTable('refresh')
+            columns: [
+                {
+                    checkbox: true
+                },
+                {
+                    "field": "module_name",
+                    "title": "模块名"
+
+                },
+                {
+                    "field": "module_version",
+                    "title": "模块信息"
+                },
+                {
+                    "field": "running_count",
+                    "title": "实例状态(正在运行/实例总数)",
+                    "formatter": function (value, row, index) {
+                        return value + '/' + row.total_count
+                    }
+                },
+                {
+                    "field": "service_started_count",
+                    "title": "服务状态(已启动/实例总数)",
+                    "formatter": function (value, row, index) {
+                        return value + '/' + row.total_count
+                    }
+                },
+                {
+                    "field": "operations",
+                    "title": "操作"
+                }
+            ]
+        });
+        tableObj.on("load-success.bs.table", function (e, data) {
+            on_table_draw(tableId, tableObj)
+        });
+        tableObj.on("refresh.bs.table", function(e, data) {
+            on_table_draw(tableId, tableObj)
+        });
+        $('#ok-' + tableId).click(function () {
+            $('#' + tableId).bootstrapTable('refresh')
+        })
     })
 }
 
+function on_table_draw(tableId, tableObj){
+    $(".bs-checkbox").css("vertical-align", "middle");
+    if (tableId == 'topoLayer'||tableId == 'basicService') {
+        tableObj.bootstrapTable('hideColumn', 'service_started_count')
+    }
+    else {
+        checkServiceState(tableId);
+    }
+    var id = setInterval(function () {
+        checkServiceState(tableId)
+    }, 60 * 1000);
+    intervalIds.push(id)
+}
 
-function render_state(stateName){
+function render_state(stateName, layer, boolModuleState){
+    if (boolModuleState){
+        if (layer == 'topoLayer' || layer == 'basicService'){
+            return '-'
+        }
+    }
     if(stateName == "running"){
         return '<span class="label label-success">running</span>'
     }
@@ -321,59 +362,73 @@ function render_state(stateName){
         return '<span class="label label-danger">stopped</span>'
     }
     else{
-        return '<span class="label label-warning">' + data + '</span>'
+        return '<span class="label label-warning">' + stateName + '</span>'
     }
 }
 
-$('.select-all').on('click',function(){
-    var controlCheckboxState = $(this).is(':checked');
-    var tableId = $(this).parents('table').attr('id');
-    if(controlCheckboxState){
-        $('#'+ tableId + ' :checkbox').each(function(){
-            $(this).prop('checked',true)
-        })
-    }
-    else{
-        $('#'+ tableId + ' :checkbox').each(function(){
-            $(this).prop('checked',false)
-        })
-    }
-});
+function checkServiceState(tableId){
+    var checkStateReq = $.ajax({
+        url: 'check_biz_state',
+        dataType: 'json',
+        type: 'get',
+        data: {
+            'region': region,
+            'layer': tableId,
+            'display_filter': $('#sel-' + tableId).val()
+        }
+    });
+    checkStateReq.done(function(data){
+        var changed = data.changed;
+        var layer = data.layer;
+        var table = $('#' + layer);
+        if (changed){
+            var infos = data.infos;
+            for (var moduleInfo in infos){
+                table.bootstrapTable('updateByUniqueId', {id: moduleInfo, row: infos[moduleInfo]})
+            }
+            $(".bs-checkbox").css("vertical-align", "middle");
+        }
+    })
+}
 
-function startInstance(instanceId){
-    var instanceStateElement = $('#'+ instanceId + ' td:eq(4)');
-    if(instanceStateElement.text().trim() == 'running'){
-        alertMessage('实例已经启动！','small');
+function startService(moduleInfo){
+    var table = $('#' + currentLayer);
+    var currentRowData = table.bootstrapTable('getRowByUniqueId', moduleInfo);
+    var totalCount = currentRowData['total_count'];
+    var runningCount = currentRowData['running_count'];
+    if (totalCount == runningCount){
+        alertMessage('所有实例已经在运行.');
         return
     }
-    var moduleInfo = $('#' + currentLayer).DataTable().cell('#' + instanceId, '.moduleInfo').data();
-    instanceStateElement.html('<span class="label label-warning">pending</span>');
-    var startInstanceReq = $.ajax({
-        url: "start_instance",
+    currentRowData['total_count'] = totalCount + '-(正在启动)';
+    table.bootstrapTable('updateByUniqueId', {id: moduleInfo, row: currentRowData});
+    var startServiceReq = $.ajax({
+        url: "start_service",
         type: "GET",
         dataType: "JSON",
         data: {
-            'instance_id': instanceId,
             'region': region,
             'layer_name': currentLayer,
             'module_info': moduleInfo
         }
     });
-    startInstanceReq.done(function(data){
-        var instanceTableId = data.instanceTableId
-        var instanceState = data.startResult
-        var serviceState = data.serviceState
-        var instanceRow = $('#' + instanceTableId).DataTable().row('#' + instanceId)
-        var rowData = instanceRow.data()
-        if(instanceState=="running"){
-            rowData['moduleState'] = serviceState.toString()
-            rowData['instanceState'] = 'running'
-            instanceRow.data(rowData).draw()
+    startServiceReq.done(function(data){
+        var successInstances = data.success;
+        var failedInstances = data.failed;
+        var ignoredInstances = data.ignore;
+        var warnMsg = '<div class="text-success">成功启动实例： ' + successInstances + '</div>';
+        var showWarning = false;
+        if (failedInstances.length > 0){
+            showWarning = true;
+            warnMsg = warnMsg + '<br/><div class="text-danger">启动失败实例： ' + failedInstances + '</div>'
         }
-        else{
-            alertMessage("实例启动失败：" + instanceId + "<br/>" + data)
-            instanceRow.data(rowData).draw()
+        if (ignoredInstances.length > 0){
+            showWarning = true;
+            warnMsg = warnMsg + '<br/><div class="text-warning">实例正在运行，无需启动： ' + ignoredInstances + '</div>'
         }
+        alertMessage(warnMsg, 'wide', 'Message');
+        currentRowData['total_count'] = totalCount;
+        table.bootstrapTable('updateByUniqueId', {id: moduleInfo, row: currentRowData})
     })
 }
 </script>

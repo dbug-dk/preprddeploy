@@ -167,10 +167,12 @@ LOGGING = {
             'when': 'D',
             'interval': 1,
             'backupCount': 7,
-            'formatter': 'common'
+            'formatter': 'common',
+            'filters': ['require_debug_false']
         },
         'autodeploy_log': {
             'level': 'DEBUG',
+            'filters': ['require_debug_false'],
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'logs/autodeploy.log'),
             'formatter': 'common'
@@ -224,3 +226,4 @@ TOPO_MODULES = ['nat', 'ci_test', 'dns']
 ACCOUNT_NAME = 'beta'
 HOME_PATH = '/home/ubuntu'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
+HOSTS_CACHE_TIME_SECONDS = 60

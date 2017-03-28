@@ -135,7 +135,6 @@ class ModuleInfo(models.Model):
         module.save()
         return module.to_dict()
 
-
     #     region = self.region
     #     if region == 'cn-north-1':
     #         account_name = 'cn-%s' % ACCOUNT_NAME
