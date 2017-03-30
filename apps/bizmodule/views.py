@@ -1,23 +1,16 @@
 #! coding=utf8
 import json
 import logging
-import traceback
-
-import time
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
 # Create your views here.
 from bizmodule import bizrender
-from bizmodule.bizstarter import BizInstanceStarter
-from bizmodule.models import BizServiceLayer
 from common.libs import ec2api
-from common.models import RegionInfo, AwsAccount
-from module.models import ModuleInfo
+from common.models import RegionInfo
 from permission.models import SitePage
 from permission.permapi import UserPerm
-from preprddeploy.settings import TOPO_MODULES
 
 logger = logging.getLogger('common')
 
@@ -72,26 +65,83 @@ def start_service(request):
     else:
         tag_pattern = '*-%s-*' % module_info
     instances = ec2api.find_instances(region, [tag_pattern])
-    ret = {'success': [], 'failed': [], 'ignore': []}
-    for instance in instances:
-        instance_name = ec2api.get_instance_tag_name(instance)
-        instance_state = instance.state['Name']
-        while instance_state == 'stopping':
-            time.sleep(5)
-            instance.load()
-            instance_state = instance.state['Name']
-        if instance_state == 'running':
-            ret['ignore'].append(instance_name)
-        elif instance_state == 'stopped':
-            try:
-                instance.start()
-                ret['success'].append(instance_name)
-            except:
-                logger.error('start instance: %s failed, error msg: %s' % (
-                    instance_name,
-                    traceback.format_exc()
-                ))
-                ret['failed'].append(instance_name)
-        elif instance_state in ['shutting-down', 'terminated']:
-            ret['failed'].append(instance_name)
+    ret = ec2api.start_instances(instances)
+    return HttpResponse(json.dumps(ret))
+
+
+def start_services(request):
+    region = request.GET.get('region')
+    layer = request.GET.get('layer_name')
+    module_infos = request.GET.get('module_infos')
+    if not region or not layer or not module_infos:
+        return HttpResponse('bad request!', status=400)
+    module_info_list = module_infos.split(',')
+    if layer in ['topoLayer', 'basicService']:
+        tag_pattern = ['*-%s-*' % module_info.split('-')[0] for module_info in module_info_list]
+    else:
+        tag_pattern = ['*-%s-*' % module_info for module_info in module_info_list]
+    instances = ec2api.find_instances(region, tag_pattern)
+    ret = ec2api.start_instances(instances)
+    return HttpResponse(json.dumps(ret))
+
+
+def stop_service(request):
+    region = request.GET.get('region')
+    layer_name = request.GET.get('layer_name')
+    module_info = request.GET.get('module_info')
+    if not module_info or not region or not layer_name:
+        return HttpResponse('bad request!', status=400)
+    if layer_name in ['topoLayer', 'basicService']:
+        tag_pattern = '*-%s-*' % module_info.split('-')[0]
+    else:
+        tag_pattern = '*-%s-*' % module_info
+    instances = ec2api.find_instances(region, [tag_pattern])
+    ret = ec2api.stop_instances(instances)
+    return HttpResponse(json.dumps(ret))
+
+
+def stop_services(request):
+    region = request.GET.get('region')
+    layer = request.GET.get('layer_name')
+    module_infos = request.GET.get('module_infos')
+    if not region or not layer or not module_infos:
+        return HttpResponse('bad request!', status=400)
+    module_info_list = module_infos.split(',')
+    if layer in ['topoLayer', 'basicService']:
+        tag_pattern = ['*-%s-*' % module_info.split('-')[0] for module_info in module_info_list]
+    else:
+        tag_pattern = ['*-%s-*' % module_info for module_info in module_info_list]
+    instances = ec2api.find_instances(region, tag_pattern)
+    ret = ec2api.stop_instances(instances)
+    return HttpResponse(json.dumps(ret))
+
+
+def restart_service(request):
+    region = request.GET.get('region')
+    layer_name = request.GET.get('layer_name')
+    module_info = request.GET.get('module_info')
+    if not module_info or not region or not layer_name:
+        return HttpResponse('bad request!', status=400)
+    if layer_name in ['topoLayer', 'basicService']:
+        tag_pattern = '*-%s-*' % module_info.split('-')[0]
+    else:
+        tag_pattern = '*-%s-*' % module_info
+    instances = ec2api.find_instances(region, [tag_pattern])
+    ret = ec2api.restart_instances(instances)
+    return HttpResponse(json.dumps(ret))
+
+
+def restart_services(request):
+    region = request.GET.get('region')
+    layer = request.GET.get('layer_name')
+    module_infos = request.GET.get('module_infos')
+    if not region or not layer or not module_infos:
+        return HttpResponse('bad request!', status=400)
+    module_info_list = module_infos.split(',')
+    if layer in ['topoLayer', 'basicService']:
+        tag_pattern = ['*-%s-*' % module_info.split('-')[0] for module_info in module_info_list]
+    else:
+        tag_pattern = ['*-%s-*' % module_info for module_info in module_info_list]
+    instances = ec2api.find_instances(region, tag_pattern)
+    ret = ec2api.restart_instances(instances)
     return HttpResponse(json.dumps(ret))

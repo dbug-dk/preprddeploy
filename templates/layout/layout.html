@@ -18,7 +18,7 @@
     <!-- Fonts from Font Awsome -->
     <link rel="stylesheet" href="{% static 'common/css/sbadmin2/font-awesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'common/css/messenger/messenger.min.css' %}">
-    <link rel="stylesheet" href="{% static 'common/css/messenger/messenger-theme-future.min.css' %}">
+    <link rel="stylesheet" href="{% static 'common/css/messenger/messenger-theme-future.css' %}">
     <link rel="stylesheet" href="{% static 'common/css/bootstrap-dialog/bootstrap-dialog.min.css' %}">
     <link rel="stylesheet" href="{% static 'common/css/bootstrap-select/bootstrap-select.min.css' %}">
     <link rel="stylesheet" href="{% static 'common/css/site.min.css' %}" />
@@ -130,7 +130,7 @@
         <script>
             region = "{{current_region}}";
             $._messengerDefaults = {
-                extraClasses: 'messenger-theme-future messenger-on-top',
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-bottom messenger-on-right',
                 parentLocations: ['#page-wrapper']
             };
 

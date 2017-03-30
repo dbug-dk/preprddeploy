@@ -31,10 +31,10 @@
                 <i class="fa fa-repeat"></i>
                 重启
             </button>
-{#            <button class="btn btn-primary btn-sm" type="button" onclick="checkAllInstance()">#}
-{#                <i class="fa fa-eye"></i>#}
-{#                检查服务状态#}
-{#            </button>#}
+            <button class="btn btn-primary btn-sm" type="button" onclick="toggleAutoCheck(false)" id="btnRefreshSwitch">
+                <i class="fa fa-refresh"></i>
+                关闭自动刷新
+            </button>
         </div>
     </div>
 </div>
@@ -212,6 +212,7 @@
 <script src="{% static 'bizmodule/js/bootstrap-table-zh-CN.min.js' %}"></script>
 <script>
 var currentLayer = 'topoLayer';
+var intervalSeconds = 60;
 var intervalIds = [];
 
 $('a[data-toggle="tab"]').on('show.bs.tab', function(e){
@@ -225,7 +226,7 @@ $(document).ready(function() {
     $(window).on('beforeunload', function(){
         console.log('start to clear intervals');
         var length = intervalIds.length;
-        for (var i= length; i >= 0; i--){
+        for (var i= length; i > 0; i--){
             clearInterval(intervalIds.pop())
         }
     })
@@ -267,28 +268,7 @@ function init_tables(){
                 }
             },
             detailFormatter: function (index, row) {
-                var instances = row.instances;
-                var htmlPrefix = '<div class="col-md-10 col-md-offset-2">' +
-                        '<table class="table table-responsive table-striped table-hover">' +
-                        '<thead>' +
-                        '<tr style="height:37px;">' +
-                        '<th>实例名</th>' +
-                        '<th>公有ip</th>' +
-                        '<th>私有ip</th>' +
-                        '<th>实例状态</th>' +
-                        '<th>服务状态</th>' +
-                        '</tr>' +
-                        '</thead>' +
-                        '<tbody>';
-                var htmlPostFix = '</tbody></table></div>';
-                var trHtml = '';
-                for (var index in instances) {
-                    var instance = instances[index];
-                    trHtml += ('<tr><td>' + instance.instance_name + '</td><td>' + instance.public_ip +
-                    '</td><td>' + instance.private_ip + '</td><td>' + render_state(instance.instance_state, tableId) +
-                    '</td><td>' + render_state(instance.module_state, tableId, true) + '</td></tr>')
-                }
-                return htmlPrefix + trHtml + htmlPostFix
+                return getModuleDetails(row, tableId, true)
             },
             columns: [
                 {
@@ -324,10 +304,10 @@ function init_tables(){
             ]
         });
         tableObj.on("load-success.bs.table", function (e, data) {
-            on_table_draw(tableId, tableObj)
+            onTableDraw(tableId, tableObj)
         });
         tableObj.on("refresh.bs.table", function(e, data) {
-            on_table_draw(tableId, tableObj)
+            onTableDraw(tableId, tableObj)
         });
         $('#ok-' + tableId).click(function () {
             $('#' + tableId).bootstrapTable('refresh')
@@ -335,7 +315,38 @@ function init_tables(){
     })
 }
 
-function on_table_draw(tableId, tableObj){
+function getModuleDetails(row, tableId, boolOffset){
+    var instances = row.instances;
+    if (boolOffset){
+        var htmlPrefix = '<div class="col-md-10 col-md-offset-2">'
+    }
+    else{
+        var htmlPrefix = '<div class="col-md-12">'
+    }
+    htmlPrefix =  htmlPrefix +
+            '<table class="table table-responsive table-striped table-hover">' +
+            '<thead>' +
+            '<tr style="height:37px;">' +
+            '<th>实例名</th>' +
+            '<th>公有ip</th>' +
+            '<th>私有ip</th>' +
+            '<th>实例状态</th>' +
+            '<th>服务状态</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+    var htmlPostFix = '</tbody></table></div>';
+    var trHtml = '';
+    for (var i in instances) {
+        var instance = instances[i];
+        trHtml += ('<tr><td>' + instance.instance_name + '</td><td>' + instance.public_ip +
+        '</td><td>' + instance.private_ip + '</td><td>' + renderState(instance.instance_state, tableId) +
+        '</td><td>' + renderState(instance.module_state, tableId, true) + '</td></tr>')
+    }
+    return htmlPrefix + trHtml + htmlPostFix
+}
+
+function onTableDraw(tableId, tableObj){
     $(".bs-checkbox").css("vertical-align", "middle");
     if (tableId == 'topoLayer'||tableId == 'basicService') {
         tableObj.bootstrapTable('hideColumn', 'service_started_count')
@@ -345,11 +356,11 @@ function on_table_draw(tableId, tableObj){
     }
     var id = setInterval(function () {
         checkServiceState(tableId)
-    }, 60 * 1000);
+    }, intervalSeconds * 1000);
     intervalIds.push(id)
 }
 
-function render_state(stateName, layer, boolModuleState){
+function renderState(stateName, layer, boolModuleState){
     if (boolModuleState){
         if (layer == 'topoLayer' || layer == 'basicService'){
             return '-'
@@ -400,8 +411,12 @@ function startService(moduleInfo){
         alertMessage('所有实例已经在运行.');
         return
     }
-    currentRowData['total_count'] = totalCount + '-(正在启动)';
-    table.bootstrapTable('updateByUniqueId', {id: moduleInfo, row: currentRowData});
+    $.globalMessenger().post({
+        message: "正在启动：" + moduleInfo,
+        type: 'info',
+        hideAfter: 5,
+        showCloseButton: true
+    });
     var startServiceReq = $.ajax({
         url: "start_service",
         type: "GET",
@@ -413,23 +428,288 @@ function startService(moduleInfo){
         }
     });
     startServiceReq.done(function(data){
-        var successInstances = data.success;
-        var failedInstances = data.failed;
-        var ignoredInstances = data.ignore;
-        var warnMsg = '<div class="text-success">成功启动实例： ' + successInstances + '</div>';
-        var showWarning = false;
-        if (failedInstances.length > 0){
-            showWarning = true;
-            warnMsg = warnMsg + '<br/><div class="text-danger">启动失败实例： ' + failedInstances + '</div>'
-        }
-        if (ignoredInstances.length > 0){
-            showWarning = true;
-            warnMsg = warnMsg + '<br/><div class="text-warning">实例正在运行，无需启动： ' + ignoredInstances + '</div>'
-        }
-        alertMessage(warnMsg, 'wide', 'Message');
-        currentRowData['total_count'] = totalCount;
-        table.bootstrapTable('updateByUniqueId', {id: moduleInfo, row: currentRowData})
+        showInstanceResponse(data)
     })
 }
+
+function stopService(moduleInfo){
+    var table = $('#' + currentLayer);
+    var currentRowData = table.bootstrapTable('getRowByUniqueId', moduleInfo);
+    var runningCount = currentRowData['running_count'];
+    if (runningCount == 0){
+        alertMessage('所有实例已经停止。');
+        return
+    }
+    var confirmInfos = '确定停止模块版本为' + moduleInfo + '的所有实例？' + getModuleDetails(currentRowData, currentLayer, false);
+    BootstrapDialog.confirm(confirmInfos, function(result){
+        if(result) {
+            $.globalMessenger().post({
+                message: "正在停止：" + moduleInfo,
+                type: 'info',
+                hideAfter: 5,
+                showCloseButton: true
+            });
+            var stopServiceReq = $.ajax({
+                url: "stop_service",
+                type: "GET",
+                dataType: "JSON",
+                data: {
+                    'region': region,
+                    'layer_name': currentLayer,
+                    'module_info': moduleInfo
+                }
+            });
+            stopServiceReq.done(function(data){
+                showInstanceResponse(data)
+            })
+        }
+    });
+}
+
+function restartService(moduleInfo){
+    var table = $('#' + currentLayer);
+    var currentRowData = table.bootstrapTable('getRowByUniqueId', moduleInfo);
+    var runningCount = currentRowData['running_count'];
+    if (runningCount == 0){
+        alertMessage('没有能重启的实例');
+        return
+    }
+    var confirmInfos = '确定重启模块版本为' + moduleInfo + '的所有实例？' + getModuleDetails(currentRowData, currentLayer, false);
+    BootstrapDialog.confirm(confirmInfos, function(result){
+        if(result) {
+            $.globalMessenger().post({
+                message: "正在重启：" + moduleInfo,
+                type: 'info',
+                hideAfter: 5,
+                showCloseButton: true
+            });
+            var stopServiceReq = $.ajax({
+                url: "stop_service",
+                type: "GET",
+                dataType: "JSON",
+                data: {
+                    'region': region,
+                    'layer_name': currentLayer,
+                    'module_info': moduleInfo
+                }
+            });
+            stopServiceReq.done(function(data){
+                showInstanceResponse(data);
+            })
+        }
+    });
+}
+
+function startAllServices(){
+    var table = $('#' + currentLayer);
+    var selectRows = table.bootstrapTable('getAllSelections');
+    if (selectRows.length == 0){
+        alertMessage('请先选择要操作的模块及版本！');
+        return
+    }
+    var serviceList = [];
+    var alreadyRunningList = [];
+    for (var rowIndex in selectRows){
+        var row = selectRows[rowIndex];
+        var moduleInfo = row['module_info'];
+        var totalCount = row['total_count'];
+        var runningCount = row['running_count'];
+        if (totalCount == runningCount){
+            alreadyRunningList.push(moduleInfo)
+        }
+        else{
+            serviceList.push(moduleInfo)
+        }
+    }
+    if (alreadyRunningList.length > 0){
+        $.globalMessenger().post({
+            message: '以下选择的模块版本实例正在运行： ' + alreadyRunningList,
+            type: 'error',
+            hideAfter: 10,
+            showCloseButton: true
+        });
+    }
+    if (serviceList.length > 0){
+        $.globalMessenger().post({
+            message: "正在批量启动：<br/>" + serviceList,
+            type: 'info',
+            hideAfter: 5,
+            showCloseButton: true
+        });
+        var startServicesReq = $.ajax({
+            url: "start_services",
+            type: "GET",
+            dataType: "JSON",
+            data: {
+                'region': region,
+                'layer_name': currentLayer,
+                'module_infos': ','.join(serviceList)
+            }
+        });
+        startServicesReq.done(function(data){
+            showInstanceResponse(data)
+        })
+    }
+}
+
+function stopAllServices(){
+    var table = $('#' + currentLayer);
+    var selectRows = table.bootstrapTable('getAllSelections');
+    if (selectRows.length == 0){
+        alertMessage('请先选择要操作的模块及版本！');
+        return
+    }
+    var serviceList = [];
+    var alreadyStoppedList = [];
+    for (var rowIndex in selectRows){
+        var row = selectRows[rowIndex];
+        var moduleInfo = row['module_info'];
+        var runningCount = row['running_count'];
+        if (runningCount == 0){
+            alreadyStoppedList.push(moduleInfo)
+        }
+        else{
+            serviceList.push(moduleInfo)
+        }
+    }
+    if (alreadyStoppedList.length > 0){
+        $.globalMessenger().post({
+            message: '以下选择的模块版本实例已经停止： ' + alreadyStoppedList,
+            type: 'error',
+            hideAfter: 10,
+            showCloseButton: true
+        })
+    }
+    if (serviceList.length > 0){
+        $.globalMessenger().post({
+            message: '正在批量停止:<br/>' + serviceList,
+            type: 'info',
+            hideAfter: 5,
+            showCloseButton: true
+        });
+        var stopServicesReq = $.ajax({
+            url: "stop_services",
+            type: "GET",
+            dataType: "JSON",
+            data: {
+                'region': region,
+                'layer_name': currentLayer,
+                'module_infos': ','.join(serviceList)
+            }
+        });
+        stopServicesReq.done(function(data){
+            showInstanceResponse(data)
+        })
+    }
+}
+
+function restartAllServices(){
+    var table = $('#' + currentLayer);
+    var selectRows = table.bootstrapTable('getAllSelections');
+    if (selectRows.length == 0){
+        alertMessage('请先选择要操作的模块及版本！');
+        return
+    }
+    var serviceList = [];
+    var noRunningList = [];
+    for (var rowIndex in selectRows){
+        var row = selectRows[rowIndex];
+        var moduleInfo = row['module_info'];
+        var runningCount = row['running_count'];
+        if (runningCount == 0){
+            noRunningList.push(moduleInfo)
+        }
+        else{
+            serviceList.push(moduleInfo)
+        }
+    }
+    if (noRunningList.length > 0){
+        $.globalMessenger().post({
+            message: '以下选择的模块版本没有正在运行的实例，无法重启： ' + noRunningList,
+            type: 'error',
+            hideAfter: 10,
+            showCloseButton: true
+        })
+    }
+    if (serviceList.length > 0){
+        $.globalMessenger().post({
+            message: '正在批量重启：<br/>' + serviceList,
+            type: 'info',
+            hideAfter: 10,
+            showCloseButton: true
+        });
+        var restartServicesReq = $.ajax({
+            url: "restart_services",
+            type: "GET",
+            dataType: "JSON",
+            data: {
+                'region': region,
+                'layer_name': currentLayer,
+                'module_infos': ','.join(serviceList)
+            }
+        });
+        restartServicesReq.done(function(data){
+            showInstanceResponse(data)
+        })
+    }
+}
+
+function showInstanceResponse(responseData){
+    var successInstances = data.success;
+    var failedInstances = data.failed;
+    var ignoredInstances = data.ignore;
+    if (successInstances.length > 0){
+        $.globalMessenger().post({
+            message: "实例操作成功：<br/>" + successInstances,
+            type: "success",
+            showCloseButton: true,
+            hideAfter: 30
+        })
+    }
+    if (failedInstances.length > 0){
+        $.globalMessenger().post({
+            message: "实例操作失败：<br/>" + failedInstances,
+            type: "error",
+            showCloseButton: true
+        })
+    }
+    if (ignoredInstances.length > 0){
+        $.globalMessenger().post({
+            message: "已忽略实例：<br/>" + ignoredInstances,
+            type: "warning",
+            showCloseButton: true,
+            hideAfter: 30
+        })
+    }
+}
+
+function updateRow(currentRowData, totalCount, table, moduleInfo){
+    currentRowData['total_count'] = totalCount;
+    table.bootstrapTable('updateByUniqueId', {id: moduleInfo, row: currentRowData})
+}
+
+function toggleAutoCheck(boolRefreshTable){
+    var btnResfreshSwitch = $('#btnRefreshSwitch');
+    if (boolRefreshTable){
+        var tableIds = ['topoLayer', 'dataAccessLayer', 'businessLayer', 'forwardLayer', 'accessLayer'];
+        btnResfreshSwitch.html('<i class="fa fa-refresh">关闭自动刷新');
+        btnResfreshSwitch.attr("onclick", "toggleAutoCheck(false)");
+        for (var index in tableIds){
+            var id = setInterval(function () {
+                checkServiceState(tableIds[index])
+            }, intervalSeconds * 1000);
+            intervalIds.push(id);
+        }
+    }
+    else{
+        btnResfreshSwitch.html('<i class="fa fa-refresh">允许自动刷新');
+        btnResfreshSwitch.attr("onclick", "toggleAutoCheck(true)");
+        var length = intervalIds.length;
+        for (var i= length; i > 0; i--){
+            clearInterval(intervalIds.pop())
+        }
+    }
+}
+
 </script>
 {% endblock %}

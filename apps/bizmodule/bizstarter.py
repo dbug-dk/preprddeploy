@@ -16,7 +16,8 @@ from bizmodule.models import BizServiceLayer
 from common.libs import ec2api
 from common.libs.ansible_api import AnsibleRunner
 from common.models import RegionInfo
-from preprddeploy.settings import STATIC_DIR, HOME_PATH
+from module.models import ModuleInfo
+from preprddeploy.settings import STATIC_DIR, HOME_PATH, MAX_WAIT_SECONDS_EVERY_LAYER, MAX_WAIT_SECONDS_EVERY_SERVICE
 
 logger = logging.getLogger('deploy')
 
@@ -24,6 +25,7 @@ logger = logging.getLogger('deploy')
 class BizInstanceStarter(object):
     def __init__(self):
         self.region_order = RegionInfo.get_all_regions_group_by_order()
+        self.service_type_dict = {}
 
     def __call__(self):
         total_round = len(self.region_order)
@@ -52,14 +54,8 @@ class BizInstanceStarter(object):
                     )
                     logger.error(error_msg)
                     return {'ret': False, 'msg': error_msg}
-                elif process_return['failed']:
-                    error_msg = 'not all services start success in region: %s, successed: %s, failed: %s' % (
-                        region,
-                        process_return['success'],
-                        json.dumps(process_return['failed'])
-                    )
-                    logger.error(error_msg)
-                    return {'ret': False, 'msg': error_msg}
+                elif not process_return['ret']:
+                    return process_return
             logger.info('all biz services started in regions: %s, round: %s' % (regions, round_num))
         return {'ret': True, 'msg': u'所有区域，业务实例启动完毕'}
 
@@ -86,13 +82,10 @@ class BizInstanceStarter(object):
         return {'ret': True}
 
     @staticmethod
-    def scan_all_instances(region, start_instance=True):
+    def scan_all_instances(region):
         biz_instances = ec2api.find_biz_instances(region)
         instance_info_dict = {}
         for instance in biz_instances:
-            # TODO: start instance now?
-            if start_instance:
-                instance.start()
             instance_name = ec2api.get_instance_tag_name(instance)
             ip = instance.private_ip_address
             key_name = instance.key_name
@@ -148,109 +141,88 @@ class BizInstanceStarter(object):
 
     @staticmethod
     def start_biz_service(region, order):
-        biz_module_infos = BizInstanceStarter.get_biz_info_by_layer(order)
-        if not biz_module_infos:
+        biz_modules = BizInstanceStarter.get_biz_modules_by_layer(order)
+        if not biz_modules:
             error_msg = '%sth layer found no service, please check the database.' % order
             logger.error(error_msg)
             raise Exception(error_msg)
         logger.info('start biz service in region %s, layer order: %s' % (region, order))
-        process_pool = Pool()
-        process_results = []
-        for service_type, services in biz_module_infos.items():
-            process_results.append(process_pool.apply_async(BizInstanceStarter.start_services,
-                                                            args=(services, service_type, region)))
-        process_pool.close()
-        process_pool.join()
-        ret = {'success': [], 'failed': {}}
-        for process_result in process_results:
-            result = process_result.get()
-            ret['success'] += result['success']
-            ret['failed'].update(result['failed'])
-        return ret
+        return BizInstanceStarter.start_services(biz_modules, region)
 
     @staticmethod
-    def get_biz_info_by_layer(order):
+    def get_biz_modules_by_layer(order):
         biz_services = BizServiceLayer.objects.filter(start_order=order)
-        biz_module_infos = {}
+        biz_modules = []
         for service in biz_services:
-            service_type = service.service_type
             module_name = service.module.module_name
             module_version = service.module.current_version
             hosts_pattern = '%s-%s' % (module_name, module_version)
-            try:
-                biz_module_infos[service_type].append(hosts_pattern)
-            except KeyError:
-                biz_module_infos.update({service_type: [hosts_pattern]})
-        return biz_module_infos
+            biz_modules.append(hosts_pattern)
+        return list(set(biz_modules))
 
     @staticmethod
-    def start_services(services, service_type, region):
-        try:
-            start_method = getattr(BizInstanceStarter, 'start_%s_service' % service_type)
-        except AttributeError:
-            logger.warn('start method not found for type: %s, ignore these.' % service_type)
-            return {'success': services, 'failed': {}}
+    def start_services(modules, region):
+        instance_patterns = ['*-%s-*' % pattern for pattern in modules]
+        instances = ec2api.find_instances(region, instance_patterns)
+        start_results = ec2api.start_instances(instances)
+        if start_results['failed']:
+            raise Exception('some instance start failed: %s' % start_results['failed'])
+        current_time = time.time()
         process_pool = Pool()
         process_results = []
-        while services:
-            service = services.pop()
-            if BizInstanceStarter.ping_services(service, region):
-                result = process_pool.apply_async(start_method, args=(service, region))
-                process_results.append((service, result))
+        while modules:
+            module = modules.pop()
+            if BizInstanceStarter.ping_services(module, region):
+                result = process_pool.apply_async(BizInstanceStarter.check_module_state, (module, region))
+                process_results.append((module, result))
             else:
-                services.insert(0, service)
+                modules.insert(0, module)
+                if time.time() - current_time > MAX_WAIT_SECONDS_EVERY_LAYER:
+                    error_msg = "some modules' instances cannot ping in %s seconds: %s" % (
+                        MAX_WAIT_SECONDS_EVERY_LAYER,
+                        ','.join(modules)
+                    )
+                    logger.error(error_msg)
+                    raise Exception(error_msg)
         process_pool.close()
         process_pool.join()
         ret = {'success': [], 'failed': {}}
-        for service, process_result in process_results:
-            successful = process_result.successful()
-            process_return = process_result.get()
-            if not successful:
-                # when not successful, process return the exception stack
-                ret['failed'].update({service: process_return})
-            elif process_return['ret']:
-                ret['success'].append(service)
+        for module, process in process_results:
+            process_return = process.get()
+            if not process.successful():
+                error_msg = 'execute check module: %s state failed, details: %s' % (
+                    module,
+                    process_return
+                )
+                ret['failed'].update({module: error_msg})
             else:
-                ret['failed'].update({service: process_return['msg']})
+                ret['success'] += process_return['success']
+                ret['failed'].update(process_return['failed'])
         logger.debug('start services success: %s, failed: %s' % (ret['success'], ret['failed'].keys()))
         return ret
 
     @staticmethod
-    def start_standard_service(service, region):
-        logger.info('start standard service: %s in region: %s' % (service, region))
-        service_name, service_version = service.split('-')
-        service_bin_folder = '%s/cloud-%s/cloud-%s-%s/bin' % (
-            HOME_PATH,
-            service_name,
-            service_name,
-            service_version
-        )
-        start_cmd = '/bin/bash -c "source /etc/profile;cd %s;./start.sh -t' % service_bin_folder
-        hosts_file_path = os.path.join(STATIC_DIR, 'hosts/hosts-%s' % region)
-        ansible_runner = AnsibleRunner()
-        ansible_runner.run_ansible(module_args=start_cmd,
-                                   pattern=service,
-                                   hosts_file=hosts_file_path)
-        start_results = ansible_runner.results
-        failed_infos = start_results[0]['failed']
-        if failed_infos:
-            error_msg = 'execute start.sh failed for %s in region: %s, failed instance num: %s, details: %s' % (
-                service,
-                region,
-                start_results[1] + start_results[3],
-                json.dumps(failed_infos)
-            )
-            logger.error(error_msg)
-            return {'ret': False, 'msg': start_results['failed']}
-        check_result = BizInstanceStarter.check_standard_service(service, region)
-        if not check_result['ret']:
-            return {'ret': False, 'msg': check_result['msg']}
-        return {'ret': True}
+    def check_module_state(module, region):
+        module_name, module_version = module.split('-')
+        ret = {'success': [], 'failed': {}}
+        for service_name, service_version in zip(module_name.split('_'), module_version.split('_')):
+            service_type = BizServiceLayer.objects.get(service_name=service_name).service_type
+            check_method = getattr(BizInstanceStarter, 'check_%s_service' % service_type)
+            check_result = check_method(service_name, service_version, region)
+            service = '%s-%s' % (service_name, service_version)
+            if check_result['ret']:
+                ret['success'].append(service)
+            else:
+                ret['failed'].update({service: check_result['msg']})
 
     @staticmethod
-    def check_standard_service(service, region, ips=None):
-        logger.info('start to check service: %s status in region: %s' % (service, region))
-        service_name, service_version = service.split('-')
+    def check_standard_service(service_name, service_version, region, ips=None, retry=False):
+        logger.info('start to check service: %s-%s status in region: %s' % (
+            service_name,
+            service_version,
+            region
+        ))
+        start_time = time.time()
         service_bin_folder = '%s/cloud-%s/cloud-%s-%s/bin' % (
             HOME_PATH,
             service_name,
@@ -262,41 +234,33 @@ class BizInstanceStarter(object):
         if ips:
             pattern = ':'.join(ips)
         else:
-            pattern = service
-        return BizInstanceStarter.__get_status(check_cmd, pattern, hosts_file_path, region)
+            pattern = '%s-%s' % (service_name, service_version)
+        while True:
+            check_result = BizInstanceStarter.__get_status(check_cmd, pattern, hosts_file_path, region)
+            if not retry or check_result['ret']:
+                return check_result
+            if time.time() - start_time > MAX_WAIT_SECONDS_EVERY_SERVICE:
+                logger.info('standard service: %s-%s not running in %s seconds, region: %s' % (
+                    service_name,
+                    service_version,
+                    MAX_WAIT_SECONDS_EVERY_SERVICE,
+                    region
+                ))
+                return check_result
+            logger.debug('service: %s-%s not running in region: %s, sleep a while and check again.' % (
+                service_name,
+                service_version,
+                region))
+            time.sleep(10)
 
     @staticmethod
-    def start_tomcat_service(service, region):
-        logger.info('start tomcat service: %s in region: %s' % (service, region))
-        service_name = service.split('-')[0]
-        tomcat_bin_folder = '%s/cloud-%s/tomcat/bin' % (HOME_PATH, service_name)
-        start_cmd = '/bin/bash -c "source /etc/profile;cd %s,nohup ./startup.sh&"' % tomcat_bin_folder
-        hosts_file_path = os.path.join(STATIC_DIR, 'hosts/hosts-%s' % region)
-        ansible_runner = AnsibleRunner()
-        ansible_runner.run_ansible(module_args=start_cmd,
-                                   pattern=service,
-                                   hosts_file=hosts_file_path)
-        start_results = ansible_runner.results
-        failed_infos = start_results[0]['failed']
-        if failed_infos:
-            logger.error('start %s tomcat failed in region: %s, failed num: %s, details: %s' % (
-                service,
-                region,
-                start_results[1] + start_results[3],
-                json.dumps(failed_infos)
-            ))
-            return {'ret': False, 'msg': failed_infos}
-        check_result = BizInstanceStarter.check_tomcat_service(service, region)
-        if not check_result['ret']:
-            return {'ret': False, 'msg': check_result['msg']}
-        return {'ret': True}
-
-    @staticmethod
-    def check_tomcat_service(service, region, ips=None, retry=True):
-        logger.info('start to check service: %s in region: %s' % (service, region))
-        wait_time = 60
+    def check_tomcat_service(service_name, service_version, region, ips=None, retry=False):
+        logger.info('start to check service: %s-%s in region: %s' % (
+            service_name,
+            service_version,
+            region
+        ))
         start_time = time.time()
-        service_name, service_version = service.split('-')
         status_file_path = '%s/cloud-%s/cloud-%s-%s/WEB-INF/classes' % (
             HOME_PATH,
             service_name,
@@ -308,19 +272,23 @@ class BizInstanceStarter(object):
         if ips:
             pattern = ':'.join(ips)
         else:
-            pattern = service
+            pattern = '%s-%s' % (service_name, service_version)
         while True:
             check_result = BizInstanceStarter.__get_status(check_cmd, pattern, hosts_file_path, region)
             if not retry or check_result['ret']:
                 return check_result
-            if time.time() - start_time > wait_time:
-                logger.info('tomcat service: %s not running in %s seconds, region: %s' % (
-                    service,
-                    wait_time,
+            if time.time() - start_time > MAX_WAIT_SECONDS_EVERY_SERVICE:
+                logger.info('tomcat service: %s-%s not running in %s seconds, region: %s' % (
+                    service_name,
+                    service_version,
+                    MAX_WAIT_SECONDS_EVERY_SERVICE,
                     region
                 ))
                 return check_result
-            logger.debug('service: %s not running in region: %s, sleep a while and check again.' % (service, region))
+            logger.debug('service: %s-%s not running in region: %s, sleep a while and check again.' % (
+                service_name,
+                service_version,
+                region))
             time.sleep(10)
 
     @staticmethod

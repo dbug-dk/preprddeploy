@@ -11,6 +11,7 @@ import time
 import subprocess
 
 import re
+import traceback
 
 from bizmodule.models import BizServiceLayer
 from common.models import AwsAccount, RegionInfo
@@ -170,3 +171,85 @@ def wait_instance_stopped(instance):
     while instance.state['Name'] != 'stopped':
         time.sleep(5)
         instance.load()
+
+
+def start_instances(instances):
+    ret = {'success': [], 'failed': [], 'ignore': []}
+    for instance in instances:
+        instance_name = get_instance_tag_name(instance)
+        instance_state = instance.state['Name']
+        while instance_state == 'stopping':
+            time.sleep(5)
+            instance.load()
+            instance_state = instance.state['Name']
+        if instance_state == 'stopped':
+            try:
+                instance.start()
+                ret['success'].append(instance_name)
+            except:
+                logger.error('start instance: %s failed, error msg: %s' % (
+                    instance_name,
+                    traceback.format_exc()
+                ))
+                ret['failed'].append(instance_name)
+        else:
+            ret['ignore'].append(instance_name)
+    return ret
+
+
+def stop_instances(instances):
+    ret = {'success': [], 'failed': [], 'ignore': []}
+    for instance in instances:
+        instance_name = get_instance_tag_name(instance)
+        instance_state = instance.state['Name']
+        while instance_state == 'pending':
+            time.sleep(5)
+            instance.load()
+            instance_state = instance.state['Name']
+        if instance_state == 'running':
+            try:
+                instance.stop()
+                ret['success'].append(instance_name)
+            except:
+                logger.error('start instance: %s failed, error msg: %s' % (
+                    instance_name,
+                    traceback.format_exc()
+                ))
+                ret['failed'].append(instance_name)
+        elif instance_state == 'stopping':
+            try:
+                instance.stop(Force=True)
+                ret['success'].append(instance_name)
+            except:
+                logger.error('start instance: %s failed, error msg: %s' % (
+                    instance_name,
+                    traceback.format_exc()
+                ))
+                ret['failed'].append(instance_name)
+        else:
+            ret['ignore'].append(instance_name)
+    return ret
+
+
+def restart_instances(instances):
+    ret = {'success': [], 'failed': [], 'ignore': []}
+    for instance in instances:
+        instance_name = get_instance_tag_name(instance)
+        instance_state = instance.state['Name']
+        while instance_state == 'pending':
+            time.sleep(5)
+            instance.load()
+            instance_state = instance.state['Name']
+        if instance_state == 'running':
+            try:
+                instance.reboot()
+                ret['success'].append(instance_name)
+            except:
+                logger.error('start instance: %s failed, error msg: %s' % (
+                    instance_name,
+                    traceback.format_exc()
+                ))
+                ret['failed'].append(instance_name)
+        else:
+            ret['ignore'].append(instance_name)
+    return ret

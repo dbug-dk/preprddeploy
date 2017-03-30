@@ -94,10 +94,10 @@ def __check_service_state(module_name, module_version, region, private_ip):
         version
     ) for name, version in zip(module_name.split('_'), module_version.split('_'))]
     for service in services:
-        service_name = service.split('-')[0]
+        service_name, service_version = service.split('-')
         service_type = BizServiceLayer.objects.get(service_name=service_name).service_type
         check_method = getattr(BizInstanceStarter, 'check_%s_service' % service_type)
-        check_result = check_method(service, region, [private_ip])
+        check_result = check_method(service_name, service_version, region, [private_ip])
         is_running = is_running and check_result['ret']
     return is_running
 
@@ -107,5 +107,5 @@ def __generate_hosts_file(region):
     hosts_ctime = os.path.getctime(hosts_file_path)
     if time.time() - hosts_ctime <= HOSTS_CACHE_TIME_SECONDS:
         return
-    instances_info_dict = BizInstanceStarter.scan_all_instances(region, False)
+    instances_info_dict = BizInstanceStarter.scan_all_instances(region)
     BizInstanceStarter.generate_hosts_file(region, instances_info_dict)

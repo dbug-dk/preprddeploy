@@ -1,42 +1,48 @@
-[connector-2.0.4]
-172.31.3.133	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.3.134	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[connector:children]
-connector-2.0.4
-[dalForFailover-1.2.7]
-172.31.2.29	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.1.117	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[dalForFailover:children]
-dalForFailover-1.2.7
-[appserverinternal-2.1.3]
-172.31.15.9	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.8.191	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[appserverinternal:children]
-appserverinternal-2.1.3
+[appservice-2.1.2]
+172.31.4.41	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.4.42	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[appservice:children]
+appservice-2.1.2
+[account-2.2.2]
+172.31.12.76	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.5.53	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[account:children]
+account-2.2.2
+[assembler-1.0.6]
+172.31.9.98	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.6.56	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[assembler:children]
+assembler-1.0.6
 [sefcore-1.0.6]
 172.31.4.127	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
 172.31.9.157	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
 [sefcore:children]
 sefcore-1.0.6
-[appserver-2.1.3]
-172.31.11.222	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.15.48	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[appserver:children]
-appserver-2.1.3
-[dal-1.2.11]
-172.31.15.71	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.7.112	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[dal-1.2.7]
-172.31.8.43	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.4.97	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[dal:children]
-dal-1.2.11
-dal-1.2.7
-[mail-1.0.0]
-172.31.14.148	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-172.31.14.147	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
-[mail:children]
-mail-1.0.0
+[kafka2es-1.0.5]
+172.31.1.35	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.0.116	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[kafka2es:children]
+kafka2es-1.0.5
+[dalForFailover-1.2.7]
+172.31.2.29	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.1.117	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dalForFailover:children]
+dalForFailover-1.2.7
+[notification-2.1.0]
+172.31.7.165	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.4.249	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[notification:children]
+notification-2.1.0
+[eventloop-1.0.6]
+172.31.11.166	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.10.4	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[eventloop:children]
+eventloop-1.0.6
+[sms-1.0.3]
+172.31.5.104	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.5.103	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[sms:children]
+sms-1.0.3
 [devconnector-1.0.4]
 172.31.5.183	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
 172.31.5.143	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
@@ -47,3 +53,57 @@ devconnector-1.0.4
 172.31.14.211	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
 [appconnector:children]
 appconnector-1.4.0
+[eswatcher-1.0.1]
+172.31.12.62	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.12.63	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[eswatcher:children]
+eswatcher-1.0.1
+[connector-2.0.4]
+172.31.3.133	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.3.134	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[connector:children]
+connector-2.0.4
+[appserver-2.1.3]
+172.31.11.222	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.15.48	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[appserver:children]
+appserver-2.1.3
+[ddns-2.0.4]
+172.31.1.59	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.1.60	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[ddns:children]
+ddns-2.0.4
+[pushservice-2.1.8]
+172.31.0.191	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.10.142	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[pushservice:children]
+pushservice-2.1.8
+[device-2.1.0]
+172.31.1.71	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.7.120	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[device:children]
+device-2.1.0
+[mail-1.0.0]
+172.31.14.148	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.14.147	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[mail:children]
+mail-1.0.0
+[appserverinternal-2.1.3]
+172.31.15.9	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.8.191	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[appserverinternal:children]
+appserverinternal-2.1.3
+[dispatcher-2.0.20]
+172.31.4.183	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.11.53	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dispatcher:children]
+dispatcher-2.0.20
+[dal-1.2.11]
+172.31.15.71	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.7.112	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dal-1.2.7]
+172.31.8.43	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+172.31.4.97	ansible_ssh_private_key_file=/home/ubuntu\pem/preprd-key-cloud.pem
+[dal:children]
+dal-1.2.11
+dal-1.2.7

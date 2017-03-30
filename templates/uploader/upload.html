@@ -41,7 +41,7 @@
 {% endblock %} 
 
 {% block content %}
-{% get_obj_perms request.user for uploaderPage as "uploaderPagePerms" %}
+{% get_obj_perms request.user for uploader_page as "uploaderPagePerms" %}
 {% if 'view' in uploaderPagePerms %}
 <ul class="nav nav-tabs">
   <li class="active">
