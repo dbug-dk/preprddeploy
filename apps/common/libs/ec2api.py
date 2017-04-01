@@ -16,7 +16,7 @@ import traceback
 from bizmodule.models import BizServiceLayer
 from common.models import AwsAccount, RegionInfo
 from module.models import ModuleInfo
-from preprddeploy.settings import PREPRD_VPC, TOPO_MODULES
+from preprddeploy.settings import DEFAULT_PREPRD_VPC, TOPO_MODULES
 
 logger = logging.getLogger('common')
 
@@ -48,7 +48,7 @@ def get_module_info(instance_name):
 
 
 def find_instances(region, tag_name_patterns, is_running=False):
-    vpc_id = PREPRD_VPC[region][1]
+    vpc_id = DEFAULT_PREPRD_VPC[region][1]
     ec2conn = AwsAccount.get_awssession(region).resource('ec2')
     filters = [
         {

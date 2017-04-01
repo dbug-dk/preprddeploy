@@ -55,7 +55,8 @@ INSTALLED_APPS = (
     'module',
     'elb',
     'basicservice',
-    'bizmodule'
+    'bizmodule',
+    'launcher'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -202,10 +203,19 @@ LOGGING = {
     }
 }
 
-PREPRD_VPC = {
+
+# default launcher parameter for preprd environment
+DEFAULT_PREPRD_VPC = {
     "cn-north-1": ['vpc-prd', 'vpc-8d92d2e8']
 }
-
+DEFAULT_IMAGE_PATTERN = 'cloud-standard'
+DEFAULT_INSTANCE_PROFILE_NAME = 's3_upload'
+DEFAULT_SUBNET = {
+    "cn-north-1": ["sn-prd-prv-a", "subnet-9058dbf5"],
+}
+DEFAULT_SECURITY_GROUP = {
+    'cn-north-1': ['preprd-sg-internal-server', 'sg-2c399f49'],
+}
 ELB_MODULES = {
         'connector': ['preprd-elb-connector-0'],
         'appserverinternal': ['preprd-internal-elb-appserver-0'],

@@ -1,0 +1,302 @@
+{% extends 'layout/layout.html' %}
+{% load guardian_tags %}
+{% block title %}
+    EC2实例创建
+{% endblock %}
+{% block content %}
+{% get_obj_perms request.user for launcher_page as "page_perms" %}
+{% if 'view' in page_perms %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="form-inline">
+            <div class="form-group">
+                <label>当前环境：{{ account_name }}</label>
+                <button class="btn btn-primary" onclick="showModules()">
+                    <span class="fa fa-tags"></span><span style="margin-left:5px">Batch Create</span>
+                </button>
+                <button class="btn btn-primary" onclick="showCreateEc2OptionSet()">
+                    <span class="fa fa-plus"></span><span style="margin-left:5px">New</span>
+                </button>
+                <button class="btn btn-primary" onclick="updateResources()">
+                    <span class="fa fa-cloud-download"></span><span style="margin-left:5px">Update Resources</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <button class="btn btn-primary" onclick="loadEc2OptionSet()">
+            <span class="fa fa-refresh"></span><span style="margin-left:5px">Reload</span>
+        </button>
+        <table id="tableEc2OptionSetsList" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyEc2OptionSetsList"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="divEc2OptionSetInfo" style="display: none;">
+    <table id="tableEc2OptionSetInfo" class="table table-bordered table-striped">
+        <tbody id="tbodyEc2OptionSetInfo">
+            <tr>
+                <th>VPC</th>
+                <td id="tdVpc"></td>
+            </tr>
+            <tr>
+                <th>Subnets</th>
+                <td id="tdSubnets"></td>
+            </tr>
+            <tr>
+                <th>AMI</th>
+                <td id="tdAMI"></td>
+            </tr>
+            <tr>
+                <th>Instance Type</th>
+                <td id="tdInstanceType"></td>
+            </tr>
+            <tr>
+                <th>Key Pair Name</th>
+                <td id="tdKeyPairName"></td>
+            </tr>
+            <tr>
+                <th>Security Group</th>
+                <td id="tdSecurityGroup"></td>
+            </tr>
+            <tr>
+                <th>EBS Settings</th>
+                <td id="tdEBSSettings"></td>
+            </tr>
+            <tr>
+                <th>Volume IOPS</th>
+                <td id="tdVolumeIOPS"></td>
+            </tr>
+            <tr>
+                <th>Volume Size</th>
+                <td id="tdVolumeSize"></td>
+            </tr>
+            <tr>
+                <th>Volume Type</th>
+                <td id="tdVolumeType"></td>
+            </tr>
+            <tr>
+                <th>SourceDest. Check</th>
+                <td id="tdSourceDestCheck"></td>
+            </tr>
+            <tr>
+                <th>Instance Profile</th>
+                <td id="tdInstanceProfile"></td>
+            </tr>
+            <tr>
+                <th>Load Balancers</th>
+                <td id="tdLoadbalancers"></td>
+            <tr>
+                <th>Tags</th>
+                <td id="tdTags"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="divRunInstanceState" style="display:none;">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            创建实例信息
+            <button type="button" class="close" onclick="javascript:$('#divRunInstanceState').css('hidden',true)">&times;</button>
+        </div>
+        <div class="panel-body">
+        </div>
+    </div>
+</div>
+
+<div id="divEc2OptionSetEdit" style="display: none;">
+    <form autocomplete="off">
+    <table id="tableEc2OptionSetEdit" class="table table-bordered table-striped">
+        <tbody id="tbodyEc2OptionSetEdit">
+            <tr>
+                <th>Name</th>
+                <td>
+                    <input id="iName" class="form-control" />
+                </td>
+            </tr>
+            <tr>
+                <th>VPC</th>
+                <td>
+                    <select id="selVpc" class="form-control" onblur="InitVpcResources()"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>Subnets</th>
+                <td>
+                    <select id="selSubnets" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>AMI</th>
+                <td>
+                    <select id="selAMI" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>Instance Type</th>
+                <td>
+                    <select id="selInstanceType" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>Key Pair Name</th>
+                <td>
+                    <select id="selKeyPairName" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>Security Group</th>
+                <td>
+                    <select id="selSecurityGroup" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>EBS Settings</th>
+                <td>
+                    <input type="checkbox" id="chkEBSSettings" checked="checked" />
+                    <label for="chkEBSSettings">Use Default EBS Settings</label>
+                </td>
+            </tr>
+            <tr>
+                <th>Volume IOPS</th>
+                <td>
+                    <input id="iVolumeIOPS" type="number" class="form-control" />
+                </td>
+            </tr>
+            <tr>
+                <th>Volume Size</th>
+                <td>
+                    <input id="iVolumeSize" type="number" class="form-control" value=8 />
+                </td>
+            </tr>
+            <tr>
+                <th>Volume Type</th>
+                <td>
+                    <select id="selVolumeType" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>SourceDest. Check</th>
+                <td>
+                    <input type="checkbox" id="chkSourceDestCheck" checked="checked"/>
+                    <label for="chkSourceDestCheck">Enable Source/Dest. Check</label>
+                </td>
+            </tr>
+            <tr>
+                <th>Instance Profile</th>
+                <td>
+                    <select id="selInstanceProfile" class="form-control"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>Add To ELB</th>
+                <td>
+                    <input type="checkbox" id="chkAddToElb" />
+                    <label for="chkAddToElb">Add the instance to ELB</label>
+                </td>
+            </tr>
+            <tr>
+                <th>Load Balancer</th>
+                <td>
+                    <select id="selLoadBalancer" class="form-control" multiple="multiple"></select>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <span>Tags</span>
+                </th>
+                <td>
+                    <table>
+                        <tbody id="tbodyTags">
+                            <tr>
+                                <td><input class="form-control" type="text" name="tagKey[]" placeholder="Tag Key" value="Name"/></td>
+                                <td><input id="iTagNameValue" class="form-control" type="text" name="tagValue[]" placeholder="Tag Value" /></td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-control" type="text" name="tagKey[]" placeholder="Tag Key" value="Category"/></td>
+                                <td><input class="form-control" type="text" name="tagValue[]" placeholder="Tag Value" value="preprd"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </form>
+</div>
+
+<div id="divMessage" style="display:none"></div>
+<div id="divRun" style="display:none">
+    <div id="divRunStatus" class="alert alert-info" style="display:none"></div>
+    <table>
+        <tr>
+            <td>Please enter number of instances to run:</td>
+        </tr>
+        <tr>
+            <td>
+                <input id="iRunNumber" class="form-control" type="number" />
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="divCopy" style="display:none">
+    <table>
+        <tr>
+            <td>Enter new name:</td>
+        </tr>
+        <tr>
+            <td>
+                <input class="form-control" type="text" />
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="divDel" style="display:none">
+    <div class="alert alert-danger">Are you sure you want to delete this option set?</div>
+</div>
+{% else %}
+<h3 class="text-danger">你没有权限查看当前页面</h3>
+{% endif %}
+{% endblock %}
+{% block script %}
+<script>
+    var account = "{{ account_name }}";
+    var resouces = {};
+    var ec2opsets = [];
+    var ec2opset = [];
+
+
+
+    function updateResources(){
+        var dialog = alertMessage("Updating resources ...","small","Message");
+
+        var updateResourceReq = $.ajax({
+            url: "update_resources",
+            method: "get",
+            data: {
+                "account": account,
+                "region": region
+            },
+            dataType: "json"
+        });
+        updateResourceReq.fail(function(){
+            dialog.close()
+            alertMessage("Update resources failed.")
+        });
+        updateResourceReq.done(function(data){
+            resources = data;
+            dialog.close();
+            alertMessage("Resources updated.","small","Message");
+        })
+    }
+
+</script>
+{% endblock %}

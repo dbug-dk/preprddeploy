@@ -20,7 +20,7 @@ from elb.elbtemplate import ElbCfnTemplate
 from elb.models import LoadbalancerInfo
 from permission.models import SitePage
 from permission.permapi import UserPerm
-from preprddeploy.settings import PREPRD_VPC
+from preprddeploy.settings import DEFAULT_PREPRD_VPC
 
 logger = logging.getLogger('common')
 
@@ -41,7 +41,7 @@ def get_loadbalancers(request):
     if 'region' in request.GET:
         region = request.GET.get('region')
         try:
-            vpc_id = PREPRD_VPC[region][1]
+            vpc_id = DEFAULT_PREPRD_VPC[region][1]
         except KeyError:
             return HttpResponse(json.dumps({
                                             'data': [],
@@ -208,7 +208,7 @@ def add_elb_instances(request):
     elbs = []
     if loadbalancers:
         for lb in loadbalancers:
-            if lb['VPCId'] == PREPRD_VPC[region][1]:
+            if lb['VPCId'] == DEFAULT_PREPRD_VPC[region][1]:
                 elbs.append(lb.get('LoadBalancerName'))
     response = {'ret': True, 'msg': {}}
     for elbname in elbs:

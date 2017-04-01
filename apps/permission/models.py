@@ -12,7 +12,8 @@ PAGE_INDEX = (
     ('elb', u'负载均衡器管理'),
     ('basic', u'基础服务管理'),
     ('uploader', u'包上传'),
-    ('bizmodule', u'业务实例管理')
+    ('bizmodule', u'业务实例管理'),
+    ('launcher', u'EC2实例创建')
 )
 
 

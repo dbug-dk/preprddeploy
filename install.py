@@ -4,13 +4,27 @@
 # Author      : dengken
 # History:
 #    1.  , dengken, first create
+import os
+import sys
+
+import django
+
+project_dir = os.path.split(os.path.realpath(__file__))[0]
+project_name = os.path.basename(project_dir)
+print project_dir, project_name
+sys.path.append(project_dir)
+os.environ['DJANGO_SETTINGS_MODULE'] = '%s.settings' % project_name
+django.setup()
+
+
 from django.contrib.auth.models import User
 
 from bizmodule.models import BizServiceLayer
 from common.libs import ec2api
-from common.models import RegionInfo, AwsAccount
+from common.models import RegionInfo
+from launcher.tasks import save_aws_resource
 from module.models import ModuleInfo
-from preprddeploy.settings import ELB_MODULES
+from preprddeploy.settings import ELB_MODULES, ACCOUNT_NAME
 
 biz_modules = {
     'dataAccessLayer': ['dal', 'crosssync', 'dalForFailover'],
@@ -34,22 +48,23 @@ STANDARD_MODULES = ['dal', 'crosssync', 'account', 'device', 'appservice', 'push
                     'kafka2es', 'eswatcher', 'eventloop']
 TOMCAT_MODULES = ['accountweb', 'appserver', 'appserverinternal', 'vaserver', 'eweb']
 
+INSTANCE_TYPE = ['t2.small', 't2.micro', 't2.medium', 't2.large', 't2.xlarge', 't2.2xlarge', 'm1.small',
+                 'm1.medium', 'm1.large', 'm1.xlarge', 'm3.medium', 'm3.large', 'm3.xlarge', 'm3.2xlarge', 'm4.large',
+                 'm4.xlarge', 'm4.2xlarge', 'm4.4xlarge', 'm4.10xlarge', 'm4.16xlarge', 'm2.xlarge', 'm2.2xlarge',
+                 'm2.4xlarge', 'cr1.8xlarge', 'r3.large', 'r3.xlarge', 'r3.2xlarge', 'r3.4xlarge', 'r3.8xlarge',
+                 'r4.large', 'r4.xlarge', 'r4.2xlarge', 'r4.4xlarge', 'r4.8xlarge', 'r4.16xlarge', 'x1.16xlarge',
+                 'x1.32xlarge', 'i2.xlarge', 'i2.2xlarge', 'i2.4xlarge', 'i2.8xlarge', 'i3.large', 'i3.xlarge',
+                 'i3.2xlarge', 'i3.4xlarge', 'i3.8xlarge', 'i3.16xlarge', 'hi1.4xlarge', 'hs1.8xlarge', 'c1.medium',
+                 'c1.xlarge', 'c3.large', 'c3.xlarge', 'c3.2xlarge', 'c3.4xlarge', 'c3.8xlarge', 'c4.large',
+                 'c4.xlarge', 'c4.2xlarge', 'c4.4xlarge', 'c4.8xlarge', 'cc1.4xlarge', 'cc2.8xlarge', 'g2.2xlarge',
+                 'g2.8xlarge', 'cg1.4xlarge', 'p2.xlarge', 'p2.8xlarge', 'p2.16xlarge', 'd2.xlarge', 'd2.2xlarge',
+                 'd2.4xlarge', 'd2.8xlarge', 'f1.2xlarge', 'f1.16xlarge']
+
 
 def scan_instances_and_save_module(region, username):
     region_obj = RegionInfo.objects.get(region=region)
     user_obj = User.objects.get(username=username)
-    ec2conn = AwsAccount.get_awssession(region).resource('ec2')
-    biz_modules = {
-    'dataAccessLayer': ['dal', 'crosssync', 'dalForFailover'],
-    'businessLayer': ['account', 'accountweb', 'device', 'appservice', 'pushservice',
-                      'vaservice', 'mail', 'mailvalidator', 'sms'],
-    'forwardingLayer': ['dispatcher', 'assembler', 'jmsservice', 'notification'],
-    'accessLayer': ['appserver', 'appserverinternal', 'connector', 'appconnector', 'sefcore',
-                    'ipcamera', 'oamanager', 'vaserver', 'ddns', 'devconnector',
-                    'kafka2es', 'eswatcher', 'eventloop']
-}
     for layer, modules in biz_modules.items():
-
         order = layer_order_map[layer]
         for module in modules:
             if module in STANDARD_MODULES:
@@ -75,49 +90,48 @@ def scan_instances_and_save_module(region, username):
             elb_names = ELB_MODULES.get(module_name)
             if count:
                 mi = ModuleInfo(module_name=module_name, current_version=max_version,
-                                instance_count=count+1, elb_names=elb_names, user=user_obj,order=-1)
+                                instance_count=count + 1, elb_names=elb_names, user=user_obj, order=-1)
                 mi.save()
                 mi.regions.add(region_obj)
-                biz_module = BizServiceLayer(module=mi, service_name=module, layer_name=layer,start_order=order,
+                biz_module = BizServiceLayer(module=mi, service_name=module, layer_name=layer, start_order=order,
                                              service_type=service_type)
                 biz_module.save()
-            print 'module name: %s, current_version: %s, instance_count: %s, elb_names: %s, service_name: %s, layer_name:%s, start_order: %s, service_type: %s' %(
-                module_name,
-                max_version,
-                count,
-                elb_names,
-                module,
-                layer,
-                order,
-                service_type
-            )
+
 
 def version_cmp(x, y):
-    arrVersionX = x.split('.')
-    arrVersionY = y.split('.')
-    lenX = len(arrVersionX)
-    lenY = len(arrVersionY)
-    cmpCount = min(lenX, lenY)
+    arr_version_x = x.split('.')
+    arr_version_y = y.split('.')
+    lenx = len(arr_version_x)
+    leny = len(arr_version_y)
+    cmp_count = min(lenx, leny)
     i = 0
-    while i < cmpCount:
+    while i < cmp_count:
         try:
-            xVersion = int(arrVersionX[i])
+            xversion = int(arr_version_x[i])
         except ValueError:
-            raise Exception('Can not parse version as integer: %s'%arrVersionX[i])
+            raise Exception('Can not parse version as integer: %s' % arr_version_x[i])
         try:
-            yVersion = int(arrVersionY[i])
+            yversion = int(arr_version_y[i])
         except ValueError:
-            raise Exception('Can not parse version as integer: %s'%arrVersionY[i])
-        if xVersion < yVersion:
+            raise Exception('Can not parse version as integer: %s' % arr_version_y[i])
+        if xversion < yversion:
             return -1
-        if xVersion > yVersion:
+        if xversion > yversion:
             return 1
         i += 1
-    if lenX > lenY:
+    if lenx > leny:
         return 1
-    if lenX < lenY:
+    if lenx < leny:
         return -1
     return 0
 
+
+def save_aws_resource_can_not_scan(region):
+    types = [(itype, '') for itype in INSTANCE_TYPE]
+    save_aws_resource(types, 'instance_type', region, ACCOUNT_NAME)
+
+
 if __name__ == '__main__':
-    scan_instances_and_save_module('cn-north-1', 'root')
+    region = 'cn-north-1'
+    # scan_instances_and_save_module(region, 'root')
+    save_aws_resource_can_not_scan(region)

@@ -7,7 +7,7 @@
 import os
 
 from common.models import AwsAccount
-from preprddeploy.settings import STATIC_DIR, PREPRD_VPC
+from preprddeploy.settings import STATIC_DIR, DEFAULT_PREPRD_VPC
 
 
 class ElbCfnTemplate(object):
@@ -28,7 +28,7 @@ class ElbCfnTemplate(object):
 
     def get_template_params(self, elbs):
         params_list = []
-        vpc_id = PREPRD_VPC[self.region][1]
+        vpc_id = DEFAULT_PREPRD_VPC[self.region][1]
         param_dict = {
              "ParameterKey": "vpcId",
              "ParameterValue": vpc_id

@@ -18,7 +18,7 @@ from common.models import RegionInfo, AwsAccount
 from elb import elb_api
 from elb.elbtemplate import ElbCfnTemplate
 from elb.models import LoadbalancerInfo
-from preprddeploy.settings import PREPRD_VPC
+from preprddeploy.settings import DEFAULT_PREPRD_VPC
 
 logger = logging.getLogger('deploy')
 
@@ -141,7 +141,7 @@ class LoadBalancerCreater(object):
                     loadbalancers = elbclient.describe_load_balancers().get('LoadBalancerDescriptions')
                     if loadbalancers:
                         for lb in loadbalancers:
-                            if lb['VPCId'] == PREPRD_VPC[region][1]:
+                            if lb['VPCId'] == DEFAULT_PREPRD_VPC[region][1]:
                                 LoadbalancerInfo.save_elb_info(lb, RegionInfo.objects.get(region=region))
                     LoadBalancerCreater._add_instances_to_elbs(region, elb_list)
                     return True

@@ -10,8 +10,10 @@ import logging
 from django.contrib.auth.models import User
 from django.db import models
 
+from common.libs.dbconn import check_db_connection
 from common.models import RegionInfo, AwsAccount, AwsResource
-from preprddeploy.settings import ELB_MODULES
+from preprddeploy.celery import app
+from preprddeploy.settings import ELB_MODULES, ACCOUNT_NAME, DEFAULT_PREPRD_VPC, DEFAULT_SUBNET, DEFAULT_SECURITY_GROUP
 
 logger = logging.getLogger('deploy')
 
@@ -108,7 +110,7 @@ class ModuleInfo(models.Model):
         regions_obj = RegionInfo.objects.filter(abbr__in=region_abbrs)
         for region_obj in regions_obj:
             module_obj.regions.add(region_obj)
-        # todo: create default launch params for module
+            get_default_resources.delay(module_name, region_obj.region, ACCOUNT_NAME)
         return module_obj.to_dict()
 
     @staticmethod
@@ -135,28 +137,49 @@ class ModuleInfo(models.Model):
         module.save()
         return module.to_dict()
 
-    #     region = self.region
-    #     if region == 'cn-north-1':
-    #         account_name = 'cn-%s' % ACCOUNT_NAME
-    #     else:
-    #         account_name = 'global-%s' % ACCOUNT_NAME
-    #     maccount = ModelAccount.objects.get(name=account_name)
-    #     account = Account()
-    #     account.from_json(maccount.text)
-    #     module_name = self.module_name
-    #     launch_params = get_default_resources(module_name, region, account)
-    #     try:
-    #         ec2option_set = ModelEc2OptionSet.objects.get(name=module_name, region=region)
-    #         ec2option_set.text = launch_params
-    #     except ModelEc2OptionSet.DoesNotExist:
-    #         logger.info('no ec2 option set found for module: %s, region: %s, create new' % (module_name, region))
-    #         ec2option_set = ModelEc2OptionSet(name=module_name, account=account_name,
-    #                                           region=region, text=launch_params)
-    #     ec2option_set.save()
-    #     self.default_launch_params = ec2option_set
-    #     self.save()
-    #
-    #
+
+@app.task
+def get_default_resources(module_name, region, account):
+    logger.error('start to get %s default launch parameters in region: %s, account: %s' % (
+        module_name,
+        region,
+        account
+    ))
+    default_resources = {
+        "alloc_public_ip": False,
+        "num": 2,
+        "keypair": None,
+        "instance_type": None,
+        "vpc": DEFAULT_PREPRD_VPC[region],
+        "subnet": DEFAULT_SUBNET[region],
+        'use_default_ebs_settings': True,
+        'volume_type': 'gp2',
+        'volume_size': 8,
+        'volume_iops': 24,
+        "security_group": DEFAULT_SECURITY_GROUP,
+        "sourceDestCheck": True,
+        "instance_profile": None,
+        "elbs": []
+    }
+    region_obj = RegionInfo.objects.get(region=region)
+    if region == 'cn-north-1':
+        account_name = 'cn-%s' % account
+    else:
+        account_name = 'en-%s' % account
+    account_obj = AwsAccount.objects.get(name=account_name)
+    default_image = AwsResource.objects.get(resource_type='ami', default=True,
+                                            region=region_obj, account=account_obj)
+    default_resources['keypair'] = AwsResource.get_default_resource('keypair', region_obj, account_obj)
+    default_resources['instance_type'] = AwsResource.get_default_resource('instance_type', region_obj, account_obj)
+    default_resources['instance_profile'] = AwsResource.get_default_resource('instance_profile', region_obj, account_obj)
+    if module_name in ELB_MODULES:
+        default_resources['elbs'] = ELB_MODULES[module_name]
+    module_obj = ModuleInfo.objects.get(module_name=module_name)
+    ec2_option_set = Ec2OptionSet(account=account_obj, region=region_obj, module=module_obj,
+                                  image=default_image, content=default_resources
+                                  )
+    ec2_option_set.save()
+    logger.info('finished save %s launch parameter in region: %s, account: %s' % (module_name, region, account))
 
 
 class ScriptExecLog(models.Model):

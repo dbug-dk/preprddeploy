@@ -154,11 +154,37 @@ class AwsResource(models.Model):
     resource_id = models.CharField(max_length=100)
     resource_type = models.CharField(max_length=100)
     parent = models.ForeignKey('self', default=None, null=True, blank=True)
+    default = models.BooleanField(default=False)
     region = models.ForeignKey(RegionInfo)
     account = models.ForeignKey(AwsAccount)
 
     def __unicode__(self):
-        return "['%s', '%s']" % (self.name, self.resource_id)
+        return "['%s', '%s']" % (self.resource_name, self.resource_id)
 
     def as_option(self):
-        return [self.name, self.resource_id]
+        return [self.resource_name, self.resource_id]
+
+    @staticmethod
+    def load_instance_types(region, account):
+        region_obj = RegionInfo.objects.get(region=region)
+        if region == 'cn-north-1':
+            account_name = 'cn-%s' % account
+        else:
+            account_name = 'en-%s' % account
+        account_obj = AwsAccount.objects.get(name=account_name)
+        try:
+            instance_types = AwsResource.objects.filter(
+                region=region_obj,
+                account=account_obj,
+                resource_type='instance_type'
+            ).values_list(['resource_name', 'resource_id'], flat=False)
+        except AttributeError:
+            logger.error('there is no instance type rows in table, please run install.py and init database first.')
+            raise
+        return list(instance_types)
+
+    @staticmethod
+    def get_default_resource(resource_type, region_obj, account_obj):
+        default_resource = AwsResource.objects.get(resource_type=resource_type, default=True,
+                                                   region=region_obj, account=account_obj)
+        return default_resource.resource_name, default_resource.resource_id
