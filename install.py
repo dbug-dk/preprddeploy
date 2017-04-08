@@ -9,9 +9,10 @@ import sys
 
 import django
 
+from basicservice.models import BasicServiceDeployInfo
+
 project_dir = os.path.split(os.path.realpath(__file__))[0]
 project_name = os.path.basename(project_dir)
-print project_dir, project_name
 sys.path.append(project_dir)
 os.environ['DJANGO_SETTINGS_MODULE'] = '%s.settings' % project_name
 django.setup()
@@ -25,6 +26,10 @@ from common.models import RegionInfo
 from launcher.tasks import save_aws_resource
 from module.models import ModuleInfo
 from preprddeploy.settings import ELB_MODULES, ACCOUNT_NAME
+
+regions = [
+    ['region_name', 'deploy_order', 'abbr', 'chinese_name']
+]
 
 biz_modules = {
     'dataAccessLayer': ['dal', 'crosssync', 'dalForFailover'],
@@ -59,6 +64,26 @@ INSTANCE_TYPE = ['t2.small', 't2.micro', 't2.medium', 't2.large', 't2.xlarge', '
                  'c4.xlarge', 'c4.2xlarge', 'c4.4xlarge', 'c4.8xlarge', 'cc1.4xlarge', 'cc2.8xlarge', 'g2.2xlarge',
                  'g2.8xlarge', 'cg1.4xlarge', 'p2.xlarge', 'p2.8xlarge', 'p2.16xlarge', 'd2.xlarge', 'd2.2xlarge',
                  'd2.4xlarge', 'd2.8xlarge', 'f1.2xlarge', 'f1.16xlarge']
+
+basic_services = (
+    ('service_name', 'order', 'region_abbrs')
+)
+
+
+def save_regions():
+    for region_name, order, abbr, chinese_name in regions:
+        region_info = RegionInfo(region=region_name, deploy_order=order,
+                                 abbr=abbr, chinese_name=chinese_name)
+        region_info.save()
+
+
+def save_basic():
+    for service_name, order, regions in basic_services:
+        basic_obj = BasicServiceDeployInfo(service_name=service_name, order=order)
+        basic_obj.save()
+        for region_abbr in regions.split(','):
+            region_obj = RegionInfo.objects.get(abbr=region_abbr)
+            basic_obj.add(region_obj)
 
 
 def scan_instances_and_save_module(region, username):
@@ -132,6 +157,10 @@ def save_aws_resource_can_not_scan(region):
 
 
 if __name__ == '__main__':
+    print 'save region info...'
+    save_regions()
+    print 'save basic service...'
+    save_basic()
     region = 'cn-north-1'
-    # scan_instances_and_save_module(region, 'root')
+    scan_instances_and_save_module(region, 'root')
     save_aws_resource_can_not_scan(region)

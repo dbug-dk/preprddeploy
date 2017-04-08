@@ -22,7 +22,7 @@ class BizServiceLayer(models.Model):
 
     @staticmethod
     def count_layer():
-        biz_service_orders= BizServiceLayer.objects.all().values_list('start_order', flat=True)
+        biz_service_orders = BizServiceLayer.objects.all().values_list('start_order', flat=True)
         return len(set(biz_service_orders))
 
     @staticmethod
@@ -34,3 +34,12 @@ class BizServiceLayer(models.Model):
             if module.bizservicelayer_set.filter(layer_name=layer_name):
                 module_names.append(module.module_name)
         return module_names
+
+    @staticmethod
+    def save_service(module, service_name, layer_name, service_type):
+        layers = ('dataAccessLayer', 'businessLayer', 'forwardingLayer', 'accessLayer')
+        start_order = layers.index(layer_name)
+        biz_service = BizServiceLayer(module=module, service_name=service_name,
+                                      layer_name=layer_name, start_order=start_order,
+                                      service_type=service_type)
+        biz_service.save()

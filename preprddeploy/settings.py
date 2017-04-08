@@ -1,3 +1,4 @@
+#! coding=utf8
 """
 Django settings for preprddeploy project.
 
@@ -56,7 +57,8 @@ INSTALLED_APPS = (
     'elb',
     'basicservice',
     'bizmodule',
-    'launcher'
+    'launcher',
+    'autodeploy'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -240,3 +242,15 @@ HOSTS_CACHE_TIME_SECONDS = 60
 
 MAX_WAIT_SECONDS_EVERY_LAYER = 300
 MAX_WAIT_SECONDS_EVERY_SERVICE = 90
+
+AUTO_DEPLOY_PROGRESS = {
+    'start_env': {
+        'order': 1,
+        'label': u'启动Pre-Prd环境',
+        'child_progress': (
+            ('elb.elbcreater.LoadBalancerCreater', u'创建负载均衡器'),
+            ('basicservice.servicestarter.BasicServiceStarter', u'启动基础服务'),
+            ('bizmodule.bizstarter.BizInstanceStarter', u'启动旧版本业务模块')
+        )
+    }
+}

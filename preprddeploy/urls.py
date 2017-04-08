@@ -14,5 +14,6 @@ urlpatterns = [
     url(r'^elb/', include('elb.urls')),
     url(r'^basic/', include('basicservice.urls')),
     url(r'^biz/', include('bizmodule.urls')),
-    url(r'^launcher/', include('launcher.urls', namespace='launcher'))
+    url(r'^launcher/', include('launcher.urls')),
+    url(r'^autodeploy/', include('autodeploy.urls'))
 ]
