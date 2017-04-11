@@ -543,7 +543,7 @@ function startAllServices(){
             data: {
                 'region': region,
                 'layer_name': currentLayer,
-                'module_infos': ','.join(serviceList)
+                'module_infos': serviceList.join(',')
             }
         });
         startServicesReq.done(function(data){
@@ -594,7 +594,7 @@ function stopAllServices(){
             data: {
                 'region': region,
                 'layer_name': currentLayer,
-                'module_infos': ','.join(serviceList)
+                'module_infos': serviceList.join(',')
             }
         });
         stopServicesReq.done(function(data){
@@ -645,7 +645,7 @@ function restartAllServices(){
             data: {
                 'region': region,
                 'layer_name': currentLayer,
-                'module_infos': ','.join(serviceList)
+                'module_infos': serviceList.join(',')
             }
         });
         restartServicesReq.done(function(data){
@@ -655,12 +655,12 @@ function restartAllServices(){
 }
 
 function showInstanceResponse(responseData){
-    var successInstances = data.success;
-    var failedInstances = data.failed;
-    var ignoredInstances = data.ignore;
+    var successInstances = responseData.success;
+    var failedInstances = responseData.failed;
+    var ignoredInstances = responseData.ignore;
     if (successInstances.length > 0){
         $.globalMessenger().post({
-            message: "实例操作成功：<br/>" + successInstances,
+            message: "实例操作成功：<br/>" + successInstances.join('<br/>'),
             type: "success",
             showCloseButton: true,
             hideAfter: 30
@@ -668,14 +668,14 @@ function showInstanceResponse(responseData){
     }
     if (failedInstances.length > 0){
         $.globalMessenger().post({
-            message: "实例操作失败：<br/>" + failedInstances,
+            message: "实例操作失败：<br/>" + failedInstances.join('<br/>'),
             type: "error",
             showCloseButton: true
         })
     }
     if (ignoredInstances.length > 0){
         $.globalMessenger().post({
-            message: "已忽略实例：<br/>" + ignoredInstances,
+            message: "已忽略实例：<br/>" + ignoredInstances.join('<br/>'),
             type: "warning",
             showCloseButton: true,
             hideAfter: 30

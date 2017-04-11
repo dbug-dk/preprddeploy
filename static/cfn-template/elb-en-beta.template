@@ -65,21 +65,6 @@
         "Description" : "if yes, will create this elb and sg",
         "Type" : "String",
         "Default" : "no"
-    },
-    "preprdelbstorage0":{
-        "Description" : "if yes, will create this elb and sg",
-        "Type" : "String",
-        "Default" : "no"
-    },
-    "preprdelbsnsHandler0":{
-        "Description" : "if yes, will create this elb and sg",
-        "Type" : "String",
-        "Default" : "no"
-    },
-    "preprdinternalelbdal0":{
-        "Description" : "if yes, will create this elb and sg",
-        "Type" : "String",
-        "Default" : "no"
     }
   },
   "Conditions":{
@@ -91,212 +76,9 @@
     "elbaccountweb":{"Fn::Equals":[{"Ref":"preprdelbaccountweb0"},"yes"]},
     "elbapperverinternal":{"Fn::Equals":[{"Ref":"preprdinternalelbappserver0"},"yes"]},
     "elbeweb":{"Fn::Equals":[{"Ref":"preprdelbeweb0"},"yes"]},
-    "elbsefcore":{"Fn::Equals":[{"Ref":"preprdelbsefcore0"},"yes"]},
-    "elbstorage":{"Fn::Equals":[{"Ref":"preprdelbstorage0"},"yes"]},
-    "elbsnshandler":{"Fn::Equals":[{"Ref":"preprdelbsnsHandler0"},"yes"]},
-    "elbdal":{"Fn::Equals":[{"Ref":"preprdinternalelbdal0"},"yes"]}
+    "elbsefcore":{"Fn::Equals":[{"Ref":"preprdelbsefcore0"},"yes"]}
   },
   "Resources": {
-    "elbDal": {
-      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-      "Condition":"elbdal",
-      "Properties": {
-        "Subnets": [
-           {"Ref":"privateSubnet1"},
-		   {"Ref":"privateSubnet2"}
-        ],
-        "Scheme":"internal",
-        "HealthCheck": {
-          "HealthyThreshold": "3",
-          "Interval": "20",
-          "Target": "HTTP:19191/heartbeat",
-          "Timeout": "5",
-          "UnhealthyThreshold": "3"
-        },
-        "ConnectionDrainingPolicy": {
-          "Enabled": "true",
-          "Timeout": "300"
-        },
-        "ConnectionSettings": {
-          "IdleTimeout": "60"
-        },
-        "CrossZone": "true",
-        "SecurityGroups": [
-          {"Fn::GetAtt":["sgElbDal","GroupId"]}
-        ],
-        "Listeners": [
-          {
-            "InstancePort": "19191",
-            "LoadBalancerPort": "19191",
-            "Protocol": "HTTP",
-            "InstanceProtocol": "HTTP"
-          }
-        ],
-        "LoadBalancerName":"preprd-internal-elb-dal-0",
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "preprd-internal-elb-dal-0"
-          }
-        ]
-      }
-    },
-	"sgElbDal":{
-		"Type" : "AWS::EC2::SecurityGroup",
-        "Condition":"elbdal",
-		"Properties" : {
-			"GroupDescription" : "security for mail elb",
-			"SecurityGroupIngress" : [{
-				"IpProtocol" : "tcp",
-				"FromPort" : "19191",
-				"ToPort" : "19191",
-				"CidrIp" : "0.0.0.0/0"
-			}],
-			"Tags" : [{
-				"Key" : "Name",
-				"Value" : "sg-elb-dal"
-			}],
-			"VpcId" : {"Ref":"vpcId"}
-		}
-	},
-    "elbSnsHandler": {
-      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-      "Condition":"elbsnshandler",
-      "Properties": {
-        "Subnets": [
-           {"Ref":"publicSubnet1"},
-		   {"Ref":"publicSubnet2"}
-        ],
-        "HealthCheck": {
-          "HealthyThreshold": "3",
-          "Interval": "20",
-          "Target": "HTTP:10000/health",
-          "Timeout": "5",
-          "UnhealthyThreshold": "3"
-        },
-        "ConnectionDrainingPolicy": {
-          "Enabled": "true",
-          "Timeout": "300"
-        },
-        "ConnectionSettings": {
-          "IdleTimeout": "60"
-        },
-        "CrossZone": "true",
-        "SecurityGroups": [
-          {"Fn::GetAtt":["sgElbSnsHandler","GroupId"]}
-        ],
-        "Listeners": [
-          {
-            "InstancePort": "10000",
-            "LoadBalancerPort": "80",
-            "Protocol": "HTTP",
-            "InstanceProtocol": "HTTP"
-          }
-        ],
-        "LoadBalancerName":"preprd-elb-snsHandler-0",
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "preprd-elb-snsHandler-0"
-          }
-        ]
-      }
-    },
-	"sgElbSnsHandler":{
-		"Type" : "AWS::EC2::SecurityGroup",
-        "Condition":"elbsnshandler",
-		"Properties" : {
-			"GroupDescription" : "security for snsHandler elb",
-			"SecurityGroupIngress" : [{
-				"IpProtocol" : "tcp",
-				"FromPort" : "80",
-				"ToPort" : "80",
-				"CidrIp" : "0.0.0.0/0"
-			}],
-			"Tags" : [{
-				"Key" : "Name",
-				"Value" : "sg-elb-snsHandler"
-			}],
-			"VpcId" : {"Ref":"vpcId"}
-		}
-	},
-    "elbStorage":{
-        "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-        "Condition":"elbstorage",
-        "Properties": {
-            "Policies": [
-                {
-                    "PolicyName": "SSLNegotiationPolicy-preprd-elb-storage-0",
-                    "PolicyType": "SSLNegotiationPolicyType",
-                    "Attributes": [
-                        {
-                        "Name": "Reference-Security-Policy",
-                        "Value": "ELBSecurityPolicy-2015-05"
-                        }
-                    ]
-                }
-            ],
-            "Subnets": [
-                {"Ref":"publicSubnet1"},
-                {"Ref":"publicSubnet2"}
-            ],
-            "HealthCheck": {
-                "HealthyThreshold": "3",
-                "Interval": "20",
-                "Target": "HTTP:41080/health",
-                "Timeout": "5",
-                "UnhealthyThreshold": "3"
-            },
-            "ConnectionDrainingPolicy": {
-                "Enabled": "true",
-                "Timeout": "300"
-            },
-            "ConnectionSettings": {
-                "IdleTimeout": "60"
-            },
-            "LoadBalancerName":"preprd-elb-storage-0",
-            "CrossZone": "true",
-            "SecurityGroups": [
-                {"Fn::GetAtt":["sgElbStorage","GroupId"]}
-            ],
-            "Listeners": [
-                {
-                    "InstancePort": "41080",
-                    "LoadBalancerPort": "443",
-                    "Protocol": "HTTPS",
-                    "InstanceProtocol": "HTTP",
-                    "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
-                    "PolicyNames": [
-                      "SSLNegotiationPolicy-preprd-elb-storage-0"
-                    ]
-                }
-            ],
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Value": "preprd-elb-storage-0"
-                }
-            ]
-        }
-    },
-    "sgElbStorage":{
-        "Type" : "AWS::EC2::SecurityGroup",
-        "Condition":"elbstorage",
-		"Properties" : {
-			"GroupDescription" : "security for storage elb",
-			"SecurityGroupIngress" : [{
-				"IpProtocol" : "tcp",
-				"FromPort" : "443",
-				"ToPort" : "443",
-				"CidrIp" : "0.0.0.0/0"
-			}],
-			"Tags" : [{
-				"Key" : "Name",
-				"Value" : "sg-elb-storage"
-			}],
-			"VpcId" : {"Ref":"vpcId"}
-		}
-    },
     "elbEweb":{
         "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
         "Condition":"elbeweb",
@@ -342,7 +124,7 @@
                     "LoadBalancerPort": "40443",
                     "Protocol": "HTTPS",
                     "InstanceProtocol": "HTTP",
-                    "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+                    "SSLCertificateId": "arn:aws:iam::948391884620:server-certificate/tplinkcloud-com-web-2019-7-13",
                     "PolicyNames": [
                       "AWSConsole-SSLNegotiationPolicy-prd-elb-eweb-0-1442316614542"
                     ]
@@ -419,7 +201,7 @@
                     "LoadBalancerPort": "60443",
                     "Protocol": "SSL",
                     "InstanceProtocol": "TCP",
-                    "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-connector-2019-7-13",
+                    "SSLCertificateId": "arn:aws:iam::948391884620:server-certificate/tplinkcloud-com-connector-2019-7-13",
                     "PolicyNames": [
                       "AWSConsole-SSLNegotiationPolicy-prd-elb-sefcore-0-1442316614542"
                     ]
@@ -496,7 +278,7 @@
             "LoadBalancerPort": "62443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+            "SSLCertificateId": "arn:aws:iam::948391884620:server-certificate/tplinkcloud-com-web-2019-7-13",
             "PolicyNames": [
               "AWSConsole-SSLNegotiationPolicy-prd-elb-vaserver-0-1442316614542"
             ]
@@ -716,7 +498,7 @@
             "LoadBalancerPort": "50443",
             "Protocol": "SSL",
             "InstanceProtocol": "TCP",
-            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-connector-2019-7-13",
+            "SSLCertificateId": "arn:aws:iam::948391884620:server-certificate/tplinkcloud-com-connector-2019-7-13",
             "PolicyNames": [
               "AWSConsole-SSLNegotiationPolicy-prd-elb-connector-0-1442316562490"
             ]
@@ -800,7 +582,7 @@
             "LoadBalancerPort": "443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+            "SSLCertificateId": "arn:aws:iam::948391884620:server-certificate/tplinkcloud-com-web-2019-7-13",
             "PolicyNames": [
               "AWSConsole-SSLNegotiationPolicy-prd-elb-appserver-0-1442316614542"
             ]
@@ -883,7 +665,7 @@
             "LoadBalancerPort": "443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::367733558093:server-certificate/tplinkcloud-com-web-2019-7-13",
+            "SSLCertificateId": "arn:aws:iam::948391884620:server-certificate/tplinkcloud-com-web-2019-7-13",
             "PolicyNames": [
               "AWSConsole-LBCookieStickinessPolicy-prd-elb-accountweb-0-1442367843897",
               "AWSConsole-SSLNegotiationPolicy-prd-elb-accountweb-0-1442316714586"
@@ -987,3 +769,4 @@
     }
   }
 }
+

@@ -53,7 +53,7 @@ class BasicService(object):
             # wait instance can fping success
             instance_ip = instance.private_ip_address
             ec2api.fping_instance(instance_ip)
-        time.sleep(10)
+        time.sleep(60)
         logger.info('pre work done.')
 
 
@@ -69,6 +69,7 @@ class MysqlService(BasicService):
             2.check if service has started.
         """
         self.prework_before_start_service()
+        #time.sleep(60)
         if self.check_service():
             logger.info('mysql service started.')
             return {'ret': True}
@@ -574,12 +575,17 @@ class RabbitmqService(BasicService):
             ec2api.wait_instance_running(instance)
             logger.info('rabbitmq instance started: %s' % instance_name)
         time.sleep(20)
-        if not self.check_service():
-            error_msg = 'rabbitmq service started failed.'
-            logger.error(error_msg)
-            return {'ret': False, 'msg': error_msg}
-        return {'ret': True}
-     
+        max_retry = 3
+        while max_retry > 0:
+            if not self.check_service():
+                max_retry -= 1
+                if max_retry == 0:
+                    error_msg = 'rabbitmq service not autostart after test %s times' % max_retry
+                    logger.error(error_msg)
+                    return {'ret': False, 'msg': error_msg}
+            else:
+                return {'ret': True}
+ 
     def check_service(self):
         check_cmd = "rabbitmqctl cluster_status"
         ansible_runner = AnsibleRunner()
@@ -612,3 +618,286 @@ class RabbitmqService(BasicService):
                 logger.error(error_msg)
                 return {'ret': False, 'msg': error_msg}
         return {'ret': True}
+
+class RedisService(BasicService):
+    def __init__(self, region):
+        self.service_name = 'redis'
+        BasicService.__init__(self, region)
+        self.privateIpList = []
+        for instance in self.instances:
+            self.keyPairName = instance.key_name
+            self.privateIpList.append(instance.private_ip_address)
+        redisConfPath = '%s/redis/config-redis/6379/redis.conf'%HOME_PATH
+        self.startCmd = 'redis-server %s&&ps aux|grep redis|grep -v grep'%redisConfPath
+        
+    def start_service(self):
+        """
+        start redis service:
+            1.start redis-server in all redis instances.
+            2.check service: see if there has process redis-server in each instance.
+        """
+        self.prework_before_start_service()
+        command = "ansible all -i %s, -m shell -a '%s' --private-key %s/%s.pem"%(
+                                                                                    ','.join(self.privateIpList),
+                                                                                    self.startCmd,
+                                                                                    PRIVATE_KEY_PATH,
+                                                                                    self.keyPairName           
+                                                                                            )
+        p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        redisInstanceCount = len(self.privateIpList)
+        if stdout.count('redis-server') == redisInstanceCount:
+            logger.info('redis service started')
+            return {'ret': True}
+        else:
+            logger.error('redis service start failed')
+            logger.error(stdout)
+            return {'ret': False, 'msg': stdout}
+            
+    def check_service(self):
+        """check redis service by using command redis.ping"""
+        for ip in self.privateIpList:
+            redisDb = redis.Redis(host=ip, socket_connect_timeout=2)
+            try:
+                redisDb.ping()
+            except:
+                logger.error("redis service not running!")
+                return False
+        return True
+
+class CodisService(BasicService):
+    def __init__(self, region):
+        self.service_name = 'codis'
+        BasicService.__init__(self, region)
+        self.codisDir = '%s/cloud-codis'%HOME_PATH
+        self.privateIpList = []
+        destInfoDict = {}
+        for instance in self.instances:
+            self.keyPairName = instance.key_name
+            instanceIp = instance.private_ip_address
+            self.privateIpList.append(instanceIp)
+            instanceTags = instance.tags
+            for tag in instanceTags:
+                if tag['Key'] == 'Name':
+                    instanceName = tag['Value']
+                    break
+            destInfoDict.update({instanceName:instanceIp})
+        # choose the first instance(order by name) to start dashboard.
+        instancesList = destInfoDict.items()
+        instancesList.sort() 
+        self.dashboardName = instancesList[0][0]
+        self.dashboardIp = instancesList[0][1]
+        
+    def start_service(self):
+        """
+        start codis service:
+            1.check zookeeper service state.codis must start after zookeeper service running.
+            2.start redis server in all codis instance.
+            3.in dashboard instance,start dashboard.init slot,add server master and set slot range.
+            4.start codis proxy.
+        """       
+        self.prework_before_start_service()
+        startRedisResult = self._startRedisInCodisInstance()
+        if startRedisResult != True:
+            return {'ret': False, 'msg': startRedisResult}
+        startDashboardResult = self._startDashboard()
+        if startDashboardResult != True:
+            return {'ret': False, 'msg': startDashboardResult}
+        slotInitResult = self._slotInit()
+        if slotInitResult != True:
+            return {'ret': False, 'msg': slotInitResult}
+        setSlotResult =  self._setSlot()
+        if setSlotResult != True:
+            return {'ret': False, 'msg': setSlotResult}
+        startProxyResult = self._startCodisProxy()
+        if startProxyResult != True:
+            return {'ret': False, 'msg': startProxyResult}
+        return {'ret': True}
+    
+    def check_service(self):
+        """check if codis cluster can connect."""
+        for ip in self.privateIpList:
+            redisDb = redis.Redis(host=ip, socket_connect_timeout=2)
+            try:
+                redisDb.ping()
+            except:
+                return False
+        return True
+        
+    def _startRedisInCodisInstance(self):
+        """start redis-server in all codis instances."""
+        startRedisCmd = 'cd %s; ./redis redis.conf&&ps aux|grep redis|grep -v grep'%self.codisDir
+        command = "ansible all -i %s, -m shell -a '%s' --private-key %s/%s.pem"%(
+                                                                            ','.join(self.privateIpList),
+                                                                            startRedisCmd,
+                                                                            PRIVATE_KEY_PATH,
+                                                                            self.keyPairName           
+                                                                            )
+        p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        redisInstanceCount = len(self.privateIpList)
+        if stdout.count('redis *:6379') == redisInstanceCount:
+            logger.info('redis service started')
+            return True
+        else:
+            logger.error('redis service start failed')
+            logger.error(stdout)
+            return stdout
+    
+    def _startDashboard(self):
+        """start dashboard in dashboard instance"""
+        startCmd = 'ansible all -i %s, -m shell -a "cd %s;nohup ./codis-config dashboard&" --private-key %s/%s.pem'%(
+                                                                                                                self.dashboardIp,
+                                                                                                                self.codisDir,
+                                                                                                                PRIVATE_KEY_PATH,
+                                                                                                                self.keyPairName
+                                                                                                                )                                                                                                                      
+        p = subprocess.Popen(startCmd, shell=True)
+        p.communicate()
+        time.sleep(1)
+        checkCmd = "ansible all -i %s, -m shell -a 'ps aux|grep dashboard' --private-key %s/%s.pem"%(
+                                                                                                self.dashboardIp,
+                                                                                                PRIVATE_KEY_PATH,
+                                                                                                self.keyPairName
+                                                                                                )
+        p = subprocess.Popen(checkCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        if 'codis-config dashboard' not in stdout:
+            logger.error('start dashboard in %s failed.'%self.dashboardName)
+            logger.error(stdout)
+            return stdout
+        logger.info('start dashboard in %s success.'%self.dashboardName)
+        return True
+    
+    def _slotInit(self):
+        """init slot in dashboard instance"""
+        startCmd = "ansible all -i %s, -m shell -a 'cd %s;./codis-config slot init' --private-key %s/%s.pem"%(
+                                                                                                        self.dashboardIp,
+                                                                                                        self.codisDir,
+                                                                                                        PRIVATE_KEY_PATH,
+                                                                                                        self.keyPairName
+                                                                                                        )
+        p = subprocess.Popen(startCmd, shell=True, stdout=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        if p.poll() or '"msg": "OK"' not in stdout:
+            logger.error('slot init failed.')
+            logger.error(stdout)
+            return stdout
+        logger.info('slot init success.')
+        return True
+        
+    def _setSlot(self):
+        """add server master and set slot range"""
+        serverId = 0
+        for ip in self.privateIpList:
+            serverId += 1
+            shellArgString = "cd %s;./codis-config server add %s %s:6379 master"%(
+                                                                            self.codisDir,
+                                                                            serverId,
+                                                                            ip
+                                                                            )
+            cmd = 'ansible all -i %s, -m shell -a "%s" --private-key %s/%s.pem'%(
+                                                                            self.dashboardIp,
+                                                                            shellArgString,
+                                                                            PRIVATE_KEY_PATH,
+                                                                            self.keyPairName
+                                                                            )
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            stdout,stderr = p.communicate()
+            if p.poll() or '"msg": "OK"' not in stdout:
+                logger.error('add master server failed. %s'%ip)
+                logger.error(stdout)
+                exit(1)
+            logger.debug('add master server success: %s, server id:%s'%(ip,serverId))
+        logger.info('add all master server success.')
+        slotRangeSetCmds = [
+            'cd %s;./codis-config slot range-set 0 340 1 online'%self.codisDir,
+            'cd %s;./codis-config slot range-set 341 680 2 online'%self.codisDir,
+            'cd %s;./codis-config slot range-set 681 1023 3 online'%self.codisDir
+        ]   
+        instanceNum = len(self.privateIpList)
+        # cn has two codis instances and en has three instances.
+        # set slot range according to the codis instance count.
+        slotRangeSetCmds = slotRangeSetCmds[:instanceNum]
+        for rangeSetCmd in slotRangeSetCmds:
+            ansibleCommand = 'ansible all -i %s, -m shell -a "%s" --private-key %s/%s.pem'%(
+                                                                                        self.dashboardIp,
+                                                                                        rangeSetCmd,
+                                                                                        PRIVATE_KEY_PATH,
+                                                                                        self.keyPairName
+                                                                                        )
+            p = subprocess.Popen(ansibleCommand, shell=True, stdout=subprocess.PIPE)
+            stdout,stderr = p.communicate()
+            if p.poll() or '"msg": "OK"' not in stdout:
+                logger.error('slot range-set failed. %s'%ip)
+                logger.error(stdout)
+                return stdout
+        logger.info('slot range set success')
+        return True
+    
+    def _startCodisProxy(self):
+        """start codis proxy"""
+        for ip in self.privateIpList:
+            startCodisCommand = "./codis-proxy -c config.ini -L ./log/proxy.log" + \
+                                " --cpu=8 --addr=%s:19000 --http-addr=%s:11000"%(ip,ip)
+            ansibleCommand = "ansible all -i %s, -m shell -a 'cd %s;nohup %s &' --private-key %s/%s.pem"%(
+                                                                                                    ip,
+                                                                                                    self.codisDir,
+                                                                                                    startCodisCommand,
+                                                                                                    PRIVATE_KEY_PATH,
+                                                                                                    self.keyPairName
+                                                                                                    )
+            p = subprocess.Popen(ansibleCommand, shell=True)
+            p.communicate()
+            time.sleep(1)
+            checkShellString = "ps aux|grep codis-proxy|grep -v grep"
+            checkCommand = 'ansible all -i %s, -m shell -a "%s" --private-key %s/%s.pem'%(
+                                                                                    ip,
+                                                                                    checkShellString,
+                                                                                    PRIVATE_KEY_PATH,
+                                                                                    self.keyPairName
+                                                                                    )
+            p = subprocess.Popen(checkCommand, shell=True, stdout=subprocess.PIPE)
+            stdout,stderr = p.communicate()
+            if p.poll() or startCodisCommand not in stdout:
+                logger.error('start codis proxy failed. %s'%ip)
+                logger.error(stdout)
+                return stdout
+        logger.info('all codis proxy start success.')
+        proxyId = self._getDashBoardProxyId()
+        shellStringArg = 'cd %s;./codis-config -c config.ini proxy online %s'%(
+                                                                            self.codisDir,
+                                                                            proxyId
+                                                                            )
+        proxyOnlineCommand ="ansible all -i %s, -m shell -a '%s' --private-key %s/%s.pem"%(
+                                                                                    self.dashboardIp,
+                                                                                    shellStringArg,
+                                                                                    PRIVATE_KEY_PATH,
+                                                                                    self.keyPairName
+                                                                                    )
+        p = subprocess.Popen(proxyOnlineCommand, shell=True, stdout=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        if p.poll() or '"msg": "OK"' not in stdout:
+            logger.error('proxy online failed. %s'%self.dashboardIp)
+            logger.error(stdout)
+            return stdout
+        logger.info('codis service started.')
+        return True
+        
+    def _getDashBoardProxyId(self):
+        """get the proxy_id arg value in the file config.ini"""
+        getDashBoardProxyIdCmd = "ansible all -i %s, -m shell -a 'grep proxy_id %s/config.ini' --private-key %s/%s.pem"%(
+                                                                                                            self.dashboardIp,
+                                                                                                            self.codisDir,
+                                                                                                            PRIVATE_KEY_PATH,
+                                                                                                            self.keyPairName
+                                                                                                            )
+        p = subprocess.Popen(getDashBoardProxyIdCmd, shell=True, stdout=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+        try:
+            proxyId = stdout.split('proxy_id')[1]
+        except IndexError:
+            logger.error('not found param proxy_id in config.ini.')
+            exit(1)
+        proxyId = proxyId.strip()[1:]
+        return proxyId

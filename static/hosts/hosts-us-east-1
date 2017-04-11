@@ -1,0 +1,105 @@
+[appservice-2.0.4]
+10.5.2.83	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.82	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[appservice:children]
+appservice-2.0.4
+[eweb-1.0.4]
+10.5.2.218	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.219	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[eweb:children]
+eweb-1.0.4
+[appserverinternal-2.1.0]
+10.5.2.204	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.205	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[appserverinternal:children]
+appserverinternal-2.1.0
+[sefcore-1.0.1]
+10.5.2.80	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.81	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[sefcore:children]
+sefcore-1.0.1
+[pushservice-2.0.6]
+10.5.2.83	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.82	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[pushservice:children]
+pushservice-2.0.6
+[vaservice-2.0.2]
+10.5.2.247	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.246	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[vaservice:children]
+vaservice-2.0.2
+[dal-1.0.15]
+10.5.2.237	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.8	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[dal:children]
+dal-1.0.15
+[notification-1.0.3]
+10.5.2.174	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.4	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[notification:children]
+notification-1.0.3
+[assembler-1.0.6]
+10.5.2.131	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.130	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[assembler:children]
+assembler-1.0.6
+[account-2.1.2]
+10.5.2.155	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.154	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[account:children]
+account-2.1.2
+[accountweb-2.0.2]
+10.5.2.155	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.154	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[accountweb:children]
+accountweb-2.0.2
+[connector-2.0.9]
+10.5.2.84	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.79	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[connector:children]
+connector-2.0.9
+[appserver-2.1.0]
+10.5.2.239	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.240	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[appserver:children]
+appserver-2.1.0
+[crosssync-1.2.1]
+10.5.2.176	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.175	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[crosssync:children]
+crosssync-1.2.1
+[vaserver-2.0.3]
+10.5.2.181	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.180	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[vaserver:children]
+vaserver-2.0.3
+[mailvalidator-1.0.1]
+10.5.2.233	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.234	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[mailvalidator:children]
+mailvalidator-1.0.1
+[ddns-2.0.2]
+10.5.2.88	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.89	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[ddns:children]
+ddns-2.0.2
+[ipcamera-2.0.3]
+10.5.2.36	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.35	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[ipcamera:children]
+ipcamera-2.0.3
+[device-2.1.6]
+10.5.2.58	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.57	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[device:children]
+device-2.1.6
+[mail-1.0.0]
+10.5.2.150	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.149	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[mail:children]
+mail-1.0.0
+[dispatcher-2.0.12]
+10.5.2.138	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+10.5.2.137	ansible_ssh_private_key_file=/home/ubuntu/pem/preprd-use1-cloud.pem
+[dispatcher:children]
+dispatcher-2.0.12

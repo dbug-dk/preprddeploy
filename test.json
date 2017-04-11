@@ -1,0 +1,15 @@
+{
+    "version": "EN-TEST",
+    "managers": ["renfengxin"],
+    "modules": {
+         "account_accountweb": {
+            "current_version": "2.1.2_2.0.2",
+            "author": "root",
+            "module_type": "standard_tomcat",
+            "is_new": false,
+            "update_version": "2.1.2_2.0.2",
+            "order": "-1",
+            "regions": ["us-east-1"]
+        }
+    }
+}

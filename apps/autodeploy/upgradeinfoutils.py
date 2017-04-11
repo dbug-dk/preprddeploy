@@ -11,11 +11,9 @@ import logging
 import traceback
 
 from django.contrib.auth.models import User
-from pywin.framework.startup import moduleName
 
 from bizmodule.models import BizServiceLayer
 from common.models import RegionInfo
-from install import version_cmp
 from module.models import ModuleInfo, get_default_resources
 from preprddeploy.settings import ACCOUNT_NAME
 
@@ -119,17 +117,11 @@ class UpgradeInfoParser(object):
         regions = params_dict.pop('regions')
         try:
             module_info = ModuleInfo.objects.get(module_name=module_name)
-        except ModuleInfo.DoesNotExist as e:
+        except ModuleInfo.DoesNotExist:
             logger.error('module: %s not found in database.' % module_name)
             raise
-        if not UpgradeInfoParser.__check_module_version(params_dict, module_info):
+        if not UpgradeInfoParser.__check_module_version(module_name, params_dict, module_info):
             error_msg = "module %s's version info is not correct!" % module_name
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        if params_dict['module_type'] != module_info.module_type:
-            error_msg = "module %s's type has changed from %s to %s" % (module_name,
-                                                                        module_info.module_type,
-                                                                        params_dict['module_type'])
             logger.error(error_msg)
             raise Exception(error_msg)
         module_layer = params_dict.pop('module_layer')
@@ -140,21 +132,22 @@ class UpgradeInfoParser(object):
         UpgradeInfoParser.update_regions(module_info, regions)
         params_dict.pop('module_type')
 
+        if params_dict['current_version'] == params_dict['update_version']:
+            params_dict.update({'update_version': ''})
         for key, value in params_dict.items():
             setattr(module_info, key, value)
         module_info.save()
 
     @staticmethod
-    def __check_module_version(params_dict, module_info):
+    def __check_module_version(module_name, params_dict, module_info):
         """
             check if module's new version is correct.
             1.new update version must not lower than new current version.
             2.new current version must exist in database after last upgrade. 
         """
-        module_name = params_dict['module_name']
         current_version = params_dict['current_version']
         update_version = params_dict['update_version']
-        version_cmp_result = version_cmp(update_version, current_version)
+        version_cmp_result = UpgradeInfoParser.version_cmp(update_version, current_version)
         if version_cmp_result == -1:
             logger.error("%s's update version: %s is lower than current version: %s." % (
                 module_name,
@@ -207,6 +200,35 @@ class UpgradeInfoParser(object):
                     module_name
                 ))
                 return False
-        if biz_services[0].layer_name != module_layer:
+        if module_layer and biz_services[0].layer_name != module_layer:
             biz_services.update(layer_name=module_layer)
         return True
+
+    @staticmethod
+    def version_cmp(x, y):
+        for version_x, version_y in zip(x.split('_'), y.split('_')):
+            arr_version_x = version_x.split('.')
+            arr_version_y = version_y.split('.')
+            lenx = len(arr_version_x)
+            leny = len(arr_version_y)
+            cmp_count = min(lenx, leny)
+            i = 0
+            while i < cmp_count:
+                try:
+                    xversion = int(arr_version_x[i])
+                except ValueError:
+                    raise Exception('Can not parse version as integer: %s' % arr_version_x[i])
+                try:
+                    yversion = int(arr_version_y[i])
+                except ValueError:
+                    raise Exception('Can not parse version as integer: %s' % arr_version_y[i])
+                if xversion < yversion:
+                    return -1
+                if xversion > yversion:
+                    return 1
+                i += 1
+            if lenx > leny:
+                return 1
+            if lenx < leny:
+                return -1
+        return 0

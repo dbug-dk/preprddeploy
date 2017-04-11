@@ -104,6 +104,10 @@ def __check_service_state(module_name, module_version, region, private_ip):
 
 def __generate_hosts_file(region):
     hosts_file_path = os.path.join(STATIC_DIR, 'hosts/hosts-%s' % region)
+    if not os.path.isfile(hosts_file_path):
+        instances_info_dict = BizInstanceStarter.scan_all_instances(region)
+        BizInstanceStarter.generate_hosts_file(region, instances_info_dict)
+        return
     hosts_ctime = os.path.getctime(hosts_file_path)
     if time.time() - hosts_ctime <= HOSTS_CACHE_TIME_SECONDS:
         return

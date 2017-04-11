@@ -1,12 +1,11 @@
 #! coding=utf8
-import json
 import logging
 
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 
 # Create your models here.
-from preprddeploy.settings import AUTO_DEPLOY_PROGRESS
+from django.db.models import Q
 
 logger = logging.getLogger('deploy')
 
@@ -33,7 +32,8 @@ class AutoDeployHistory(models.Model):
     task_num = models.IntegerField()
     task_pid = models.IntegerField(default=0)
     result_pid = models.IntegerField(default=0)
-    is_finish = models.BooleanField(default=False)
+    is_deploy_finish = models.BooleanField(default=False)
+    is_result_finish = models.BooleanField(default=False)
     is_success = models.BooleanField(default=False)
     start_time = models.DateTimeField(auto_now_add=True)
     managers = models.CharField(max_length=100)
@@ -43,7 +43,7 @@ class AutoDeployHistory(models.Model):
         return '%s| %s| %s| %s| %s' % (
             self.upgrade_version,
             self.progress_name,
-            self.is_finish,
+            self.is_deploy_finish and self.is_result_finish,
             self.is_success,
             self.managers
         )
@@ -51,12 +51,12 @@ class AutoDeployHistory(models.Model):
     @staticmethod
     def get_current_deploy():
         try:
-            auto_deploy_history = AutoDeployHistory.objects.get(is_finish=False)
+            auto_deploy_history = AutoDeployHistory.objects.get(Q(is_deploy_finish=False) | Q(is_result_finish=False))
         except AutoDeployHistory.DoesNotExist as e:
-            logger.error('%s, query: is_finish=False' % e.message)
+            logger.error('%s, query: is_deploy_finish=False or is result_finish=False' % e.message)
             raise Exception('no upgrade progress is running')
         except MultipleObjectsReturned as e:
-            logger.error('%s, query: is_finish=False' % e.message)
+            logger.error('%s, query: is_deploy_finish=False or is result_finish=False' % e.message)
             raise Exception('two or more upgrade progresses have not been finished, please check db.')
         return auto_deploy_history
 
@@ -68,21 +68,21 @@ class AutoDeployHistory(models.Model):
             autodeploy_model = model
         for key, value in update_attrs.items():
             setattr(autodeploy_model, key, value)
-        autodeploy_model.save()
+        autodeploy_model.save(update_fields=update_attrs.keys())
 
     @staticmethod
     def update_current_task_num():
         """get current task num and add 1."""
         current_deploy_history_model = AutoDeployHistory.get_current_deploy()
         current_deploy_history_model.task_num += 1
-        current_deploy_history_model.save()
+        current_deploy_history_model.save(update_fields=['task_num'])
 
     @staticmethod
     def update_log_content(result):
         """get current task num and add 1."""
         current_deploy_history_model = AutoDeployHistory.get_current_deploy()
         current_deploy_history_model.log_content += '\n%s' % result
-        current_deploy_history_model.save()
+        current_deploy_history_model.save(update_fields=['log_content'])
 
     @staticmethod
     def add_new_deploy_history(upgrade_version, managers, method):
@@ -97,3 +97,4 @@ class AutoDeployHistory(models.Model):
                                                 progress_name=method,
                                                 task_num=1, managers=','.join(managers))
         auto_deploy_history.save()
+

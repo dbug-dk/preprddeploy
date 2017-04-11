@@ -9,7 +9,6 @@ import sys
 
 import django
 
-from basicservice.models import BasicServiceDeployInfo
 
 project_dir = os.path.split(os.path.realpath(__file__))[0]
 project_name = os.path.basename(project_dir)
@@ -21,6 +20,7 @@ django.setup()
 from django.contrib.auth.models import User
 
 from bizmodule.models import BizServiceLayer
+from basicservice.models import BasicServiceDeployInfo
 from common.libs import ec2api
 from common.models import RegionInfo
 from launcher.tasks import save_aws_resource
@@ -28,17 +28,14 @@ from module.models import ModuleInfo
 from preprddeploy.settings import ELB_MODULES, ACCOUNT_NAME
 
 regions = [
-    ['region_name', 'deploy_order', 'abbr', 'chinese_name']
+    ['us-east-1', 1, 'use1', '美国区']
 ]
 
 biz_modules = {
-    'dataAccessLayer': ['dal', 'crosssync', 'dalForFailover'],
-    'businessLayer': ['account', 'accountweb', 'device', 'appservice', 'pushservice',
-                      'vaservice', 'mail', 'mailvalidator', 'sms'],
-    'forwardingLayer': ['dispatcher', 'assembler', 'jmsservice', 'notification'],
-    'accessLayer': ['appserver', 'appserverinternal', 'connector', 'appconnector', 'sefcore',
-                    'ipcamera', 'oamanager', 'vaserver', 'ddns', 'devconnector',
-                    'kafka2es', 'eswatcher', 'eventloop']
+    'dataAccessLayer': ['dal', 'crosssync', 'notification'],
+    'businessLayer': ['account_accountweb', 'appservice_pushservice', 'device', 'mail', 'mailvalidator', 'vaservice'],
+    'forwardingLayer': ['dispatcher', 'assembler'],
+    'accessLayer': ['appserver', 'appserverinternal', 'connector', 'ddns', 'eweb', 'ipcamera', 'sefcore', 'vaserver']
 }
 
 layer_order_map = {
@@ -47,10 +44,7 @@ layer_order_map = {
     'forwardingLayer': 3,
     'accessLayer': 4
 }
-STANDARD_MODULES = ['dal', 'crosssync', 'account', 'device', 'appservice', 'pushservice', 'ddns', 'ipcamera',
-                    'dispatcher', 'assembler', 'connector', 'appconnector', 'mail', 'vaservice', 'sefcore',
-                    'mailvalidator', 'dalForFailover', 'jmsservice', 'sms', 'notification', 'devconnector',
-                    'kafka2es', 'eswatcher', 'eventloop']
+STANDARD_MODULES = ['dal', 'crosssync', 'notification', 'account', 'appservice', 'pushservice', 'device', 'mail', 'mailvalidator', 'vaservice','dispatcher', 'assembler', 'connector', 'ddns', 'ipcamera', 'sefcore']
 TOMCAT_MODULES = ['accountweb', 'appserver', 'appserverinternal', 'vaserver', 'eweb']
 
 INSTANCE_TYPE = ['t2.small', 't2.micro', 't2.medium', 't2.large', 't2.xlarge', 't2.2xlarge', 'm1.small',
@@ -66,7 +60,15 @@ INSTANCE_TYPE = ['t2.small', 't2.micro', 't2.medium', 't2.large', 't2.xlarge', '
                  'd2.4xlarge', 'd2.8xlarge', 'f1.2xlarge', 'f1.16xlarge']
 
 basic_services = (
-    ('service_name', 'order', 'region_abbrs')
+    ('pushCassandra', 1, 'use1'),
+    ('cassandra', 1, 'use1'),
+    ('codis', 2, 'use1'),
+    ('mysql', 1, 'use1'),
+    ('redisClusterMaster', 1, 'use1'),
+    ('zookeeper', 1, 'use1'),
+    ('redis', 1, 'use1'),
+    ('rabbitmq', 1, 'use1'),
+    ('redisClusterSlave', 2, 'use1')
 )
 
 
@@ -83,7 +85,7 @@ def save_basic():
         basic_obj.save()
         for region_abbr in regions.split(','):
             region_obj = RegionInfo.objects.get(abbr=region_abbr)
-            basic_obj.add(region_obj)
+            basic_obj.regions.add(region_obj)
 
 
 def scan_instances_and_save_module(region, username):
@@ -92,12 +94,6 @@ def scan_instances_and_save_module(region, username):
     for layer, modules in biz_modules.items():
         order = layer_order_map[layer]
         for module in modules:
-            if module in STANDARD_MODULES:
-                service_type = 'standard'
-            elif module in TOMCAT_MODULES:
-                service_type = 'tomcat'
-            else:
-                servict_type = 'other'
             instances = ec2api.find_instances(region, ['*-%s-*' % module])
             max_version = '1.0.0'
             count = 0
@@ -118,36 +114,46 @@ def scan_instances_and_save_module(region, username):
                                 instance_count=count + 1, elb_names=elb_names, user=user_obj, order=-1)
                 mi.save()
                 mi.regions.add(region_obj)
-                biz_module = BizServiceLayer(module=mi, service_name=module, layer_name=layer, start_order=order,
-                                             service_type=service_type)
-                biz_module.save()
+		for service in module.split('_'):
+		    if service in STANDARD_MODULES:
+                	service_type = 'standard'
+            	    elif service in TOMCAT_MODULES:
+                	service_type = 'tomcat'
+            	    else:
+                        service_type = 'other'
+		    biz_module = BizServiceLayer(module=mi, service_name=service, layer_name=layer, start_order=order,
+                                                 service_type=service_type)
+                    biz_module.save()
 
 
 def version_cmp(x, y):
-    arr_version_x = x.split('.')
-    arr_version_y = y.split('.')
-    lenx = len(arr_version_x)
-    leny = len(arr_version_y)
-    cmp_count = min(lenx, leny)
-    i = 0
-    while i < cmp_count:
-        try:
-            xversion = int(arr_version_x[i])
-        except ValueError:
-            raise Exception('Can not parse version as integer: %s' % arr_version_x[i])
-        try:
-            yversion = int(arr_version_y[i])
-        except ValueError:
-            raise Exception('Can not parse version as integer: %s' % arr_version_y[i])
-        if xversion < yversion:
-            return -1
-        if xversion > yversion:
+    x = x.split('_')
+    y = y.split('_')
+    for vx, vy in zip(x, y):	    
+	arr_version_x = vx.split('.')
+        arr_version_y = vy.split('.')
+        lenx = len(arr_version_x)
+        leny = len(arr_version_y)
+        cmp_count = min(lenx, leny)
+        i = 0
+        while i < cmp_count:
+            try:
+                xversion = int(arr_version_x[i])
+            except ValueError:
+                raise Exception('Can not parse version as integer: %s' % arr_version_x[i])
+            try:
+                yversion = int(arr_version_y[i])
+            except ValueError:
+                raise Exception('Can not parse version as integer: %s' % arr_version_y[i])
+            if xversion < yversion:
+               return -1
+            if xversion > yversion:
+               return 1
+            i += 1
+        if lenx > leny:
             return 1
-        i += 1
-    if lenx > leny:
-        return 1
-    if lenx < leny:
-        return -1
+        if lenx < leny:
+            return -1
     return 0
 
 
@@ -158,9 +164,9 @@ def save_aws_resource_can_not_scan(region):
 
 if __name__ == '__main__':
     print 'save region info...'
-    save_regions()
+    #save_regions()
     print 'save basic service...'
-    save_basic()
-    region = 'cn-north-1'
+    #save_basic()
+    region = 'us-east-1'
     scan_instances_and_save_module(region, 'root')
     save_aws_resource_can_not_scan(region)

@@ -170,12 +170,12 @@ LOGGING = {
             'when': 'D',
             'interval': 1,
             'backupCount': 7,
-            'formatter': 'common',
-            'filters': ['require_debug_false']
+            'formatter': 'common'
+            #'filters': ['require_debug_false']
         },
         'autodeploy_log': {
             'level': 'DEBUG',
-            'filters': ['require_debug_false'],
+            #'filters': ['require_debug_false'],
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'logs/autodeploy.log'),
             'formatter': 'common'
@@ -208,7 +208,7 @@ LOGGING = {
 
 # default launcher parameter for preprd environment
 DEFAULT_PREPRD_VPC = {
-    "cn-north-1": ['vpc-prd', 'vpc-8d92d2e8']
+    "us-east-1": ['vpc-preprd-alpha-use1', 'vpc-c7cd9fa0']
 }
 DEFAULT_IMAGE_PATTERN = 'cloud-standard'
 DEFAULT_INSTANCE_PROFILE_NAME = 's3_upload'
@@ -235,7 +235,7 @@ ELB_MODULES = {
 
 TOPO_MODULES = ['nat', 'ci_test', 'dns']
 
-ACCOUNT_NAME = 'beta'
+ACCOUNT_NAME = 'alpha'
 HOME_PATH = '/home/ubuntu'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 HOSTS_CACHE_TIME_SECONDS = 60
@@ -249,8 +249,8 @@ AUTO_DEPLOY_PROGRESS = {
         'label': u'启动Pre-Prd环境',
         'child_progress': (
             ('elb.elbcreater.LoadBalancerCreater', u'创建负载均衡器'),
-            ('basicservice.servicestarter.BasicServiceStarter', u'启动基础服务'),
-            ('bizmodule.bizstarter.BizInstanceStarter', u'启动旧版本业务模块')
+#            ('basicservice.servicestarter.BasicServiceStarter', u'启动基础服务'),
+            ('bizmodule.bizstarter.BizInstanceStarter', u'启动旧版本业务模块'),
         )
     }
 }

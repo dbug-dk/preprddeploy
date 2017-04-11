@@ -11,7 +11,10 @@ import threadpool
 from multiprocessing import cpu_count
 
 from basicservice import basiccls
+from basicservice.models import BasicServiceDeployInfo
+from common.libs import ec2api
 from common.models import RegionInfo
+from preprddeploy.settings import TOPO_MODULES
 
 logger = logging.getLogger('deploy')
 
@@ -24,6 +27,23 @@ class BasicServiceStarter(object):
         for order in self.region_order_dict:
             for region in self.region_order_dict[order]:
                 self.results.update({region: {'success': [], 'failed': []}})
+        self.start_topo_and_basic_instances()
+
+    def start_topo_and_basic_instances(self):
+        for order, regions in self.region_order_dict.items():
+            for region in regions:
+                instance_patterns = ['*-%s-*' % topo_service for topo_service in TOPO_MODULES]
+                basic_service_list = BasicServiceDeployInfo.get_all_basic_service(region, exclude=['rabbitmq'])
+                instance_patterns.extend(['*-%s-*' % basic_service for basic_service in basic_service_list])
+                instances = ec2api.find_instances(region, instance_patterns)
+                start_failed_instances = ec2api.start_instances(instances)['failed']
+                if start_failed_instances:
+                    logger.error('start topo service failed in region: %s, failed services: %s' % (
+                        region,
+                        start_failed_instances
+                    ))
+                    raise Exception('start topo instances failed: %s,\
+                    cancel basic service start process' % start_failed_instances)
 
     @staticmethod
     def start_service(service_name, region):

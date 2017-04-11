@@ -6,8 +6,10 @@
 #    1.  , dengken, first create
 import json
 import logging
+import multiprocessing
+import multiprocessing.pool
+
 import os
-from multiprocessing import Pool
 
 import time
 
@@ -16,10 +18,61 @@ from bizmodule.models import BizServiceLayer
 from common.libs import ec2api
 from common.libs.ansible_api import AnsibleRunner
 from common.models import RegionInfo
-from module.models import ModuleInfo
+
 from preprddeploy.settings import STATIC_DIR, HOME_PATH, MAX_WAIT_SECONDS_EVERY_LAYER, MAX_WAIT_SECONDS_EVERY_SERVICE
 
 logger = logging.getLogger('deploy')
+
+
+def start_biz_service_in_region(region):
+    instance_info_dict = BizInstanceStarter.scan_all_instances(region)
+    BizInstanceStarter.generate_hosts_file(region, instance_info_dict)
+    total_layer_num = BizServiceLayer.count_layer()
+    for order in xrange(1, total_layer_num + 1):
+        start_result = BizInstanceStarter.start_biz_service(region, order)
+        if start_result['failed']:
+            error_msg = 'some services start failed in region: %s, order: %s, details: %s' % (
+                region,
+                order,
+                json.dumps(start_result['failed'])
+            )
+            logger.error(error_msg)
+            return {'ret': False, 'msg': error_msg}
+        logger.info('all biz instance service start success in region: %s, layer: %s, services: %s' % (
+            region,
+            order,
+            start_result['success']
+        ))
+    return {'ret': True}
+
+
+def check_module_state(module, region):
+    module_name, module_version = module.split('-')
+    ret = {'success': [], 'failed': {}}
+    for service_name, service_version in zip(module_name.split('_'), module_version.split('_')):
+        service_type = BizServiceLayer.objects.get(service_name=service_name).service_type
+        check_method = getattr(BizInstanceStarter, 'check_%s_service' % service_type)
+        check_result = check_method(service_name, service_version, region, retry=True)
+        service = '%s-%s' % (service_name, service_version)
+        if check_result['ret']:
+            ret['success'].append(service)
+        else:
+            ret['failed'].update({service: check_result['msg']})
+    return ret
+
+
+class NoDaemonProcess(multiprocessing.Process):
+    # make 'daemon' attribute always return False
+    def _get_daemon(self):
+        return False
+
+    def _set_daemon(self, value):
+        pass
+    daemon = property(_get_daemon, _set_daemon)
+
+
+class MyPool(multiprocessing.pool.Pool):
+    Process = NoDaemonProcess
 
 
 class BizInstanceStarter(object):
@@ -38,10 +91,10 @@ class BizInstanceStarter(object):
                 logger.error(error_msg)
                 logger.error('start biz instance service cancel')
                 return {'ret': False, 'msg': u'RegionInfo表中数据有误，中止启动基础服务\n%s' % error_msg}
-            process_pool = Pool()
+            process_pool = MyPool()
             process_results = []
             for region in regions:
-                result = process_pool.apply_async(self.start_biz_service_in_region, args=(region,))
+                result = process_pool.apply_async(start_biz_service_in_region, args=(region,))
                 process_results.append((region, result))
             process_pool.close()
             process_pool.join()
@@ -58,28 +111,6 @@ class BizInstanceStarter(object):
                     return process_return
             logger.info('all biz services started in regions: %s, round: %s' % (regions, round_num))
         return {'ret': True, 'msg': u'所有区域，业务实例启动完毕'}
-
-    @staticmethod
-    def start_biz_service_in_region(region):
-        instance_info_dict = BizInstanceStarter.scan_all_instances(region)
-        BizInstanceStarter.generate_hosts_file(region, instance_info_dict)
-        total_layer_num = BizServiceLayer.count_layer()
-        for order in xrange(1, len(total_layer_num) + 1):
-            start_result = BizInstanceStarter.start_biz_service(region, order)
-            if start_result['failed']:
-                error_msg = 'some services start failed in region: %s, order: %s, details: %s' % (
-                    region,
-                    order,
-                    json.dumps(start_result['failed'])
-                )
-                logger.error(error_msg)
-                return {'ret': False, 'msg': error_msg}
-            logger.info('all biz instance service start success in region: %s, layer: %s, services: %s' % (
-                region,
-                order,
-                start_result['success']
-            ))
-        return {'ret': True}
 
     @staticmethod
     def scan_all_instances(region):
@@ -168,12 +199,12 @@ class BizInstanceStarter(object):
         if start_results['failed']:
             raise Exception('some instance start failed: %s' % start_results['failed'])
         current_time = time.time()
-        process_pool = Pool()
+        process_pool = MyPool()
         process_results = []
         while modules:
             module = modules.pop()
             if BizInstanceStarter.ping_services(module, region):
-                result = process_pool.apply_async(BizInstanceStarter.check_module_state, (module, region))
+                result = process_pool.apply_async(check_module_state, (module, region))
                 process_results.append((module, result))
             else:
                 modules.insert(0, module)
@@ -200,20 +231,6 @@ class BizInstanceStarter(object):
                 ret['failed'].update(process_return['failed'])
         logger.debug('start services success: %s, failed: %s' % (ret['success'], ret['failed'].keys()))
         return ret
-
-    @staticmethod
-    def check_module_state(module, region):
-        module_name, module_version = module.split('-')
-        ret = {'success': [], 'failed': {}}
-        for service_name, service_version in zip(module_name.split('_'), module_version.split('_')):
-            service_type = BizServiceLayer.objects.get(service_name=service_name).service_type
-            check_method = getattr(BizInstanceStarter, 'check_%s_service' % service_type)
-            check_result = check_method(service_name, service_version, region)
-            service = '%s-%s' % (service_name, service_version)
-            if check_result['ret']:
-                ret['success'].append(service)
-            else:
-                ret['failed'].update({service: check_result['msg']})
 
     @staticmethod
     def check_standard_service(service_name, service_version, region, ips=None, retry=False):
@@ -330,7 +347,9 @@ class BizInstanceStarter(object):
                                    pattern=service,
                                    hosts_file=hosts_file_path)
         ping_results = ansible_runner.results
-        if ping_results['failed']:
-            logger.debug('service instances can not ping: %s' % ping_results['failed'].keys())
+        failed = ping_results[0]['failed']
+        if failed:
+            logger.debug('service instances can not ping: %s' % failed.keys())
             return False
         return True
+
