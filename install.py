@@ -114,23 +114,23 @@ def scan_instances_and_save_module(region, username):
                                 instance_count=count + 1, elb_names=elb_names, user=user_obj, order=-1)
                 mi.save()
                 mi.regions.add(region_obj)
-		for service in module.split('_'):
-		    if service in STANDARD_MODULES:
-                	service_type = 'standard'
-            	    elif service in TOMCAT_MODULES:
-                	service_type = 'tomcat'
-            	    else:
-                        service_type = 'other'
-		    biz_module = BizServiceLayer(module=mi, service_name=service, layer_name=layer, start_order=order,
-                                                 service_type=service_type)
-                    biz_module.save()
+        for service in module.split('_'):
+            if service in STANDARD_MODULES:
+                service_type = 'standard'
+            elif service in TOMCAT_MODULES:
+                service_type = 'tomcat'
+            else:
+                service_type = 'other'
+            biz_module = BizServiceLayer(module=mi, service_name=service, layer_name=layer, start_order=order,
+                                         service_type=service_type)
+            biz_module.save()
 
 
 def version_cmp(x, y):
     x = x.split('_')
     y = y.split('_')
-    for vx, vy in zip(x, y):	    
-	arr_version_x = vx.split('.')
+    for vx, vy in zip(x, y):
+        arr_version_x = vx.split('.')
         arr_version_y = vy.split('.')
         lenx = len(arr_version_x)
         leny = len(arr_version_y)

@@ -165,7 +165,7 @@ class AwsResource(models.Model):
         return [self.resource_name, self.resource_id]
 
     @staticmethod
-    def load_instance_types(region, account):
+    def load_resource(resource_type, region, account, parent=None):
         region_obj = RegionInfo.objects.get(region=region)
         if region == 'cn-north-1':
             account_name = 'cn-%s' % account
@@ -173,15 +173,16 @@ class AwsResource(models.Model):
             account_name = 'en-%s' % account
         account_obj = AwsAccount.objects.get(name=account_name)
         try:
-            instance_types = AwsResource.objects.filter(
+            resources = AwsResource.objects.filter(
                 region=region_obj,
                 account=account_obj,
-                resource_type='instance_type'
-            ).values_list(['resource_name', 'resource_id'], flat=False)
+                resource_type=resource_type,
+                parent=parent
+            ).values_list('resource_name', 'resource_id')
         except AttributeError:
-            logger.error('there is no instance type rows in table, please run install.py and init database first.')
+            logger.error('there is no %s rows in table, please check db or update resource first.' % resource_type)
             raise
-        return list(instance_types)
+        return list(resources)
 
     @staticmethod
     def get_default_resource(resource_type, region_obj, account_obj):

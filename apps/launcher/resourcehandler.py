@@ -7,9 +7,10 @@
 import json
 import logging
 
+import functools
+
 from common.models import AwsAccount, AwsResource
-from preprddeploy.settings import DEFAULT_PREPRD_VPC, DEFAULT_IMAGE_PATTERN, DEFAULT_INSTANCE_PROFILE_NAME, \
-                                  ELB_MODULES, DEFAULT_SUBNET, DEFAULT_SECURITY_GROUP
+from preprddeploy.settings import DEFAULT_PREPRD_VPC, DEFAULT_IMAGE_PATTERN, DEFAULT_INSTANCE_PROFILE_NAME, ELB_MODULES
 from tasks import save_aws_resource
 
 logger = logging.getLogger('common')
@@ -23,13 +24,43 @@ class AwsResourceHandler(object):
         self.resources = {
             "images": [],
             "keypairs": [],
-            "instance_types": [], # AwsResource.load_instance_types(self.region, self.account_name),
+            "instance_types": [],
             "vpcs": [],
             "subnets": {},
             "security_groups": {},
             "instance_profiles": [],
             "elbs": {}
         }
+
+    def load_resources(self):
+        get_resource_by_type = functools.partial(AwsResource.load_resource, region=self.region,
+                                                 account=self.account_name, parent=None)
+        logger.info('get images from db...')
+        self.resources['images'] = get_resource_by_type('ami')
+        logger.info('get keypairs from db...')
+        self.resources['keypairs'] = get_resource_by_type('keypair')
+        logger.info('get instance types from db...')
+        self.resources['instance_types'] = get_resource_by_type('instance_type')
+        logger.info('get vpcs from db...')
+        self.resources['vpcs'] = get_resource_by_type('vpc')
+        logger.info('get instance profiles from db...')
+        self.resources['instance_profiles'] = get_resource_by_type('instance_profile')
+        for vpc_name, vpc_id in self.resources['vpcs']:
+            vpc_obj = AwsResource.objects.get(resource_name=vpc_name, resource_id=vpc_id)
+            get_resource_has_parent = functools.partial(AwsResource.load_resource, region=self.region,
+                                                        account=self.account_name, parent=vpc_obj)
+            logger.info('get subnets, security_groups and elbs')
+            self.resources['subnets'].update({
+                vpc_id: get_resource_has_parent('subnet')
+            })
+            self.resources['security_groups'].update({
+                vpc_id: get_resource_has_parent('security_group')
+            })
+            self.resources['elbs'].update({
+                vpc_id: get_resource_has_parent('loadbalancer')
+            })
+        logger.debug('current resources: %s' % self.resources)
+        return self.resources
 
     def update_resources(self):
         logger.info('updating images...')
@@ -38,18 +69,28 @@ class AwsResourceHandler(object):
         self.resources['keypairs'] = self.list_keypairs()
         logger.info('updating vpcs...')
         self.resources['vpcs'] = self.list_vpcs()
-        logger.info('updating subnets')
+        logger.info('updating subnets, security_groups and elbs by iterate vpc')
+        vpc_elb_dict = self.list_loadbalancers()
         for vpc_name, vpc_id in self.resources['vpcs']:
             self.resources['subnets'].update({
                 vpc_id: self.list_subnets(vpc_id)
             })
-        logger.info('updating security groups...')
-        for vpc_name, vpc_id in self.resources['vpcs']:
-            self.resources["security_groups"].update({
+            self.resources['security_groups'].update({
                 vpc_id: self.list_security_groups(vpc_id)
             })
+            if vpc_id in vpc_elb_dict:
+                self.resources['elbs'].update({
+                    vpc_id: vpc_elb_dict[vpc_id]
+                })
+            else:
+                self.resources['elbs'].update({
+                    vpc_id: []
+                })
         logger.info('updating instance profiles...')
         self.resources['instance_profiles'] = self.list_instance_profile()
+        logger.info('load instance types...')
+        self.resources['instance_type'] = AwsResource.load_resource('instance_type', self.region, self.account_name)
+        return self.resources
 
     def list_images(self):
         ec2conn = self.session.resource('ec2')
@@ -160,19 +201,19 @@ class AwsResourceHandler(object):
         save_aws_resource.delay(ret, 'security_group', self.region, self.account_name, vpc_obj)
         return ret
 
-    def list_loadbalancers(self, vpc_id):
-        elbconn = self.session.client('elb')
-        loadbalancers = elbconn.describe_load_balancers()['LoadBalancerDescriptions']
+    def list_loadbalancers(self):
         ret = []
-        for loadbalancer in loadbalancers:
-            elb_name = loadbalancer['LoadBalancerName']
-            belong_vpc = loadbalancer['VPCId']
-            if belong_vpc == vpc_id:
+        default_vpc = DEFAULT_PREPRD_VPC.values()
+        elbs = reduce(lambda x, y: x + y, ELB_MODULES.values())
+        vpc_elb_dict = {}
+        for vpc_name, vpc_id in default_vpc:
+            for elb_name in elbs:
                 ret.append((elb_name, ''))
-        ret.sort()
-        vpc_obj = AwsResource.objects.get(resource_id=vpc_id)
-        save_aws_resource.delay(ret, 'loadbalancer', self.region, self.account_name, vpc_obj)
-        return ret
+            ret.sort()
+            vpc_obj = AwsResource.objects.get(resource_id=vpc_id)
+            save_aws_resource.delay(ret, 'loadbalancer', self.region, self.account_name, vpc_obj)
+            vpc_elb_dict.update({vpc_id: ret})
+        return vpc_elb_dict
 
     @staticmethod
     def get_resource_tag(resource, tag_name):

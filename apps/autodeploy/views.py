@@ -3,8 +3,9 @@ import json
 import logging
 import traceback
 from threading import Thread
+
+from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
-from django.forms import model_to_dict
 from django.http import HttpResponse
 # from django.shortcuts import render
 
@@ -20,6 +21,9 @@ logger = logging.getLogger('deploy')
 
 @csrf_exempt
 def start_process(request):
+    auto_deploy_history = AutoDeployHistory.objects.filter(Q(is_deploy_finish=False) | Q(is_result_finish=False))
+    if auto_deploy_history:
+        return HttpResponse('%s start process is running' % len(auto_deploy_history), status=400)
     method = request.POST.get('method')
     upgrade_infos = request.POST.get('upgrade_infos')
     if not method or not upgrade_infos:
@@ -49,7 +53,6 @@ def start_process(request):
     AutoDeployHistory.add_new_deploy_history(upgrade_version, managers, method)
     result_worker = __get_result_worker(method)
     progress = processmgr.ProgressStarter(method, result_worker)
-    #ProgressStarter.start.delay(progress)
     Thread(target=progress.start).start()
     return HttpResponse(json.dumps({'status': 200}))
 
@@ -87,10 +90,11 @@ def get_status(request):
             current_task_name = AUTO_DEPLOY_PROGRESS[progress_name]['child_progress'][task_num-1]
             status.update({'current_task_name': current_task_name})
         else:
-	    end_time = deploy_history_obj.end_time
+            end_time = deploy_history_obj.end_time
             duration = '%s seconds' % (end_time - start_time).total_seconds()
             status.update({'duration': duration})
             status.update({'end_time': end_time.strftime('%Y:%m:%d %H:%M:%S')})
         return HttpResponse(json.dumps({'status': 200, 'msg': status}))
     except:
         return HttpResponse(json.dumps({'status': 500, 'msg': traceback.format_exc()}))
+

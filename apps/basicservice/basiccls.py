@@ -307,11 +307,13 @@ class CassandraBaseService(BasicService):
         self.startCmd = '/bin/bash -c "source /etc/profile;nohup %s/cassandra -f > %s/cas_out&"' % (cass_bin_path,
                                                                                                     HOME_PATH)
         dest_dict = {}
+        self.name_instance_dict = {}
         for instance in self.instances:
             self.key_name = instance.key_name
             instance_ip = instance.private_ip_address
             instance_name = ec2api.get_instance_tag_name(instance)
             dest_dict.update({instance_name: instance_ip})
+            self.name_instance_dict.update({instance_name: instance})
         self.instances_list = dest_dict.items()
         self.instances_list.sort()
 
@@ -352,6 +354,25 @@ class CassandraBaseService(BasicService):
         logger.info('all %s service started' % self.service_name)
         return {'ret': True}
 
+    def stop_service(self):
+        self.instances_list.sort(reverse=True)
+        for instance_name, instance_ip in self.instances_list:
+            logging.info('kill cassandra process in %s' % instance_name)
+            kill_cmd = '''ansible all -i %s, -m shell -a "ps -ef|grep cass|grep -v grep|awk '{print \$2}'|xargs kill"
+            --private-key %s/%s.pem''' % (
+                instance_ip,
+                PRIVATE_KEY_PATH,
+                self.key_name
+            )
+            p = subprocess.Popen(kill_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            if p.poll() == 0:
+                logging.info('kill cassandra process success')
+                time.sleep(10)
+            instance = self.name_instance_dict[instance_name]
+            instance.stop()
+        return {'ret': True}
+
     def check_service(self):
         """check if the cassandra cluster can connect"""
         for instance_name, instance_ip in self.instances_list:
@@ -385,6 +406,15 @@ class FactoryInfoCassandraService(CassandraBaseService):
     def __init__(self, region):
         self.service_name = 'factoryInfoCassandra'
         CassandraBaseService.__init__(self, region)
+
+
+class StatsCassandraService(CassandraBaseService):
+    def __init__(self, region):
+        self.service_name = 'statsCassandra'
+        CassandraBaseService.__init__(self, region)
+        cass_bin_path = '%s/cloud-third/cassandra/apache-cassandra-2.1.17/bin' % HOME_PATH
+        self.startCmd = '/bin/bash -c "source /etc/profile;nohup %s/cassandra -f > %s/cas_out&"' % (cass_bin_path,
+                                                                                                    HOME_PATH)
 
 
 class ZookeeperService(BasicService):

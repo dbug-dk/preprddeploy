@@ -24,7 +24,7 @@ class ModuleInfo(models.Model):
     current_version = models.CharField(max_length=20, blank=True, null=True)
     instance_count = models.IntegerField(default=2)
     regions = models.ManyToManyField(RegionInfo)
-    elb_names = models.CharField(max_length=1000, null=True, blank=True)
+    # elb_names = models.CharField(max_length=1000, null=True, blank=True)
     user = models.ForeignKey(User, related_name='module_user', on_delete=models.SET_NULL, null=True)
     order = models.IntegerField(default=-1)
 
@@ -103,14 +103,12 @@ class ModuleInfo(models.Model):
         for key, value in post_params.items():
             setattr(module_obj, key, value)
         module_name = post_params['module_name']
-        if module_name in ELB_MODULES:
-            module_obj.elb_names = ','.join(ELB_MODULES[module_name])
         module_obj.user = User.objects.get(username=module_user)
         module_obj.save()
         regions_obj = RegionInfo.objects.filter(abbr__in=region_abbrs)
         for region_obj in regions_obj:
             module_obj.regions.add(region_obj)
-            get_default_resources.delay(module_name, region_obj.region, ACCOUNT_NAME)
+            module_obj.get_default_resources(module_name, region_obj.region, ACCOUNT_NAME)
         return module_obj.to_dict()
 
     @staticmethod
@@ -137,49 +135,48 @@ class ModuleInfo(models.Model):
         module.save()
         return module.to_dict()
 
-
-@app.task
-def get_default_resources(module_name, region, account):
-    logger.error('start to get %s default launch parameters in region: %s, account: %s' % (
-        module_name,
-        region,
-        account
-    ))
-    default_resources = {
-        "alloc_public_ip": False,
-        "num": 2,
-        "keypair": None,
-        "instance_type": None,
-        "vpc": DEFAULT_PREPRD_VPC[region],
-        "subnet": DEFAULT_SUBNET[region],
-        'use_default_ebs_settings': True,
-        'volume_type': 'gp2',
-        'volume_size': 8,
-        'volume_iops': 24,
-        "security_group": DEFAULT_SECURITY_GROUP,
-        "sourceDestCheck": True,
-        "instance_profile": None,
-        "elbs": []
-    }
-    region_obj = RegionInfo.objects.get(region=region)
-    if region == 'cn-north-1':
-        account_name = 'cn-%s' % account
-    else:
-        account_name = 'en-%s' % account
-    account_obj = AwsAccount.objects.get(name=account_name)
-    default_image = AwsResource.objects.get(resource_type='ami', default=True,
-                                            region=region_obj, account=account_obj)
-    default_resources['keypair'] = AwsResource.get_default_resource('keypair', region_obj, account_obj)
-    default_resources['instance_type'] = AwsResource.get_default_resource('instance_type', region_obj, account_obj)
-    default_resources['instance_profile'] = AwsResource.get_default_resource('instance_profile', region_obj, account_obj)
-    if module_name in ELB_MODULES:
-        default_resources['elbs'] = ELB_MODULES[module_name]
-    module_obj = ModuleInfo.objects.get(module_name=module_name)
-    ec2_option_set = Ec2OptionSet(account=account_obj, region=region_obj, module=module_obj,
-                                  image=default_image, content=default_resources
-                                  )
-    ec2_option_set.save()
-    logger.info('finished save %s launch parameter in region: %s, account: %s' % (module_name, region, account))
+    @staticmethod
+    def get_default_resources(module_name, region, account):
+        logger.error('start to get %s default launch parameters in region: %s, account: %s' % (
+            module_name,
+            region,
+            account
+        ))
+        default_resources = {
+            "keypair": None,
+            "instance_type": None,
+            "vpc": DEFAULT_PREPRD_VPC[region],
+            "subnets": [DEFAULT_SUBNET[region]],
+            "use_default_ebs_settings": True,
+            "volume_type": 'gp2',
+            "volume_size": 8,
+            "volume_iops": 24,
+            "security_group": DEFAULT_SECURITY_GROUP[region],
+            "sourceDestCheck": True,
+            "instance_profile": None,
+            "elbs": None,
+            "add_instance_to_elb": False
+        }
+        region_obj = RegionInfo.objects.get(region=region)
+        if region == 'cn-north-1':
+            account_name = 'cn-%s' % account
+        else:
+            account_name = 'en-%s' % account
+        account_obj = AwsAccount.objects.get(name=account_name)
+        default_image = AwsResource.objects.get(resource_type='ami', default=True,
+                                                region=region_obj, account=account_obj)
+        default_resources['keypair'] = AwsResource.get_default_resource('keypair', region_obj, account_obj)
+        default_resources['instance_type'] = AwsResource.get_default_resource('instance_type', region_obj, account_obj)[0]
+        default_resources['instance_profile'] = AwsResource.get_default_resource('instance_profile', region_obj, account_obj)
+        if module_name in ELB_MODULES:
+            default_resources['elbs'] = ELB_MODULES[module_name]
+            default_resources['add_instance_to_elb'] = True
+        module_obj = ModuleInfo.objects.get(module_name=module_name)
+        ec2_option_set = Ec2OptionSet(name=module_name, account=account_obj, region=region_obj, module=module_obj,
+                                      image=default_image, content=json.dumps(default_resources)
+                                      )
+        ec2_option_set.save()
+        logger.info('finished save %s launch parameter in region: %s, account: %s' % (module_name, region, account))
 
 
 class ScriptExecLog(models.Model):
@@ -192,9 +189,10 @@ class ScriptExecLog(models.Model):
 
 
 class Ec2OptionSet(models.Model):
+    name = models.CharField(max_length=100, unique=True)
     account = models.ForeignKey(AwsAccount)
     region = models.ForeignKey(RegionInfo)
-    module = models.ForeignKey(ModuleInfo)
-    image = models.ForeignKey(AwsResource)
+    module = models.ForeignKey(ModuleInfo, blank=True, null=True)
+    image = models.ForeignKey(AwsResource, on_delete=models.SET_NULL, null=True)
     tags = models.TextField(default=None, null=True, blank=True)
     content = models.TextField()

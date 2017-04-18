@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 
 from bizmodule.models import BizServiceLayer
 from common.models import RegionInfo
-from module.models import ModuleInfo, get_default_resources
+from module.models import ModuleInfo
 from preprddeploy.settings import ACCOUNT_NAME
 
 logger = logging.getLogger('deploy')
@@ -107,7 +107,7 @@ class UpgradeInfoParser(object):
         module_name = params_dict['module_name']
         for region_obj in regions_obj:
             module_info_obj.regions.add(region_obj)
-            get_default_resources.delay(module_name, region_obj.region, ACCOUNT_NAME)
+            module_info_obj.get_default_resources(module_name, region_obj.region, ACCOUNT_NAME)
         for service in module_name.split('_'):
             BizServiceLayer.save_service(module_info_obj, service, module_layer, module_type)
 

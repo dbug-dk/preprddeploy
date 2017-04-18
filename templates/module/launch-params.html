@@ -1,0 +1,224 @@
+<div id="showLaunchParams">
+    <ul class="nav nav-pills">
+        {% for region in launch_params %}
+            {% if forloop.first %}
+            <li class="active"><a href="#launch-params-{{ region }}" data-toggle="tab">{{ region }}</a></li>
+            {% else %}
+            <li><a href="#launch-params-{{ region }}" data-toggle="tab">{{ region }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <div class="tab-content">
+        {% for region, launch_param in launch_params.items %}
+            {% if forloop.first %}
+            <div class="tab-pane fade in active" id="launch-params-{{ region }}">
+                {% if launch_param %}
+                <table id="show-params-{{ region }}" class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th>VPC</th>
+                            <td id='vpcId'>
+                            {{ launch_param.vpc.0}}({{launch_param.vpc.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subnets</th>
+                            <td>
+                            {{ launch_param.subnets.0.0}}({{ launch_param.subnets.0.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>AMI</th>
+                            <td>{{ launch_param.image.0}}({{ launch_param.image.1}})</td>
+                        </tr>
+                        <tr>
+                            <th>Instance Type</th>
+                            <td>
+                                {{ launch_param.instance_type }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Key Pair Name</th>
+                            <td>
+                                {{ launch_param.keypair.0}}({{ launch_param.keypair.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Security Group</th>
+                            <td>
+                                {{ launch_param.security_group.0}}({{ launch_param.security_group.1}})
+                            </td>
+                        </tr>
+                        {% if launch_param.use_default_ebs_settings %}
+                        <tr>
+                            <th>Volume IOPS</th>
+                            <td>24</td>
+                        </tr>
+                        <tr>
+                            <th>Volume Size</th>
+                            <td>8G</td>
+                        </tr>
+                        <tr>
+                            <th>Volume Type</th>
+                            <td>gp2</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th>Volume IOPS</th>
+                            <td>
+                                {{ launch_param.volume_iops }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume Size</th>
+                            <td>
+                                {{ launch_param.volume_size }}G
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume Type</th>
+                            <td>
+                                {{ launch_param.volume_type }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Enable Source/Dest. Check</th>
+                            <td>
+                                {{ launch_param.sourceDestCheck }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Instance Profile</th>
+                            <td>
+                               {{ launch_param.instance_profile.0}}({{ launch_param.instance_profile.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Add the instance to ELB</th>
+                            <td>
+                                {{ launch_param.add_instance_to_elb }}
+                            </td>
+                        </tr>
+                        {% if launch_param.add_instance_to_elb %}
+                        <tr>
+                            <th>Load Balancer</th>
+                            <td>
+                                {{ launch_param.elbs|join:", " }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                {% else %}
+                <h4 class="text-warning">模块在该区域下没有设置默认启动参数</h4>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="tab-pane fade" id="launch-params-{{ region }}">
+                {% if launch_param %}
+                <table id="show-params-{{ region }}" class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th>VPC</th>
+                            <td id='vpcId'>
+                            {{ launch_param.vpc.0}}({{launch_param.vpc.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subnets</th>
+                            <td>
+                            {{ launch_param.subnets.0.0}}({{ launch_param.subnets.0.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>AMI</th>
+                            <td>{{ launch_param.image.0}}({{ launch_param.image.1}})</td>
+                        </tr>
+                        <tr>
+                            <th>Instance Type</th>
+                            <td>
+                                {{ launch_param.instance_type }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Key Pair Name</th>
+                            <td>
+                                {{ launch_param.keypair.0}}({{ launch_param.keypair.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Security Group</th>
+                            <td>
+                                {{ launch_param.security_group.0}}({{ launch_param.security_group.1}})
+                            </td>
+                        </tr>
+                        {% if launch_param.use_default_ebs_settings %}
+                        <tr>
+                            <th>Volume IOPS</th>
+                            <td>24</td>
+                        </tr>
+                        <tr>
+                            <th>Volume Size</th>
+                            <td>8G</td>
+                        </tr>
+                        <tr>
+                            <th>Volume Type</th>
+                            <td>gp2</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th>Volume IOPS</th>
+                            <td>
+                                {{ launch_param.volume_iops }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume Size</th>
+                            <td>
+                                {{ launch_param.volume_size }}G
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume Type</th>
+                            <td>
+                                {{ launch_param.volume_type }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Enable Source/Dest. Check</th>
+                            <td>
+                                {{ launch_param.sourceDestCheck }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Instance Profile</th>
+                            <td>
+                               {{ launch_param.instance_profile.0}}({{ launch_param.instance_profile.1}})
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Add the instance to ELB</th>
+                            <td>
+                                {{ launch_param.add_instance_to_elb }}
+                            </td>
+                        </tr>
+                        {% if launch_param.add_instance_to_elb %}
+                        <tr>
+                            <th>Load Balancer</th>
+                            <td>
+                                {{ launch_param.elbs|join:", " }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                {% else %}
+                <h4 class="text-warning">模块在该区域下没有设置默认启动参数</h4>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>

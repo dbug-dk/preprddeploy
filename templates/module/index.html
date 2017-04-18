@@ -419,5 +419,238 @@
             {% endif %}
         })
     }
+
+    function showLaunchParams(moduleName){
+        var showLaunchParamsReq = $.ajax({
+            url: "/module/get_launch_params",
+            dataType: "html",
+            data: {
+                'module_name': moduleName
+            },
+            type: "GET"
+        });
+        showLaunchParamsReq.fail(function(req){
+            alertAjaxError(req)
+        });
+        showLaunchParamsReq.done(function(data){
+            BootstrapDialog.show({
+                title: '启动参数：' + moduleName ,
+                message: data,
+                size: BootstrapDialog.SIZE_WIDE,
+                nl2br: false,
+                buttons: [
+                    {
+                        icon: 'fa fa-check-square-o',
+                        label: '确定',
+                        cssClass: 'btn btn-primary',
+                        action : function(dialogRef){
+                            dialogRef.close()
+                        }
+                    }
+                ]
+            })
+        })
+    }
+
+    function chooseRegion(moduleName){
+        var getRegionsReq = $.ajax({
+            url: '/module/get_module_region',
+            dataType: 'JSON',
+            data: {
+                'module_name': moduleName
+            },
+            type: "get"
+        });
+        getRegionsReq.fail(function(req){
+            alertAjaxError(req)
+        });
+        getRegionsReq.done(function(data){
+            var regionNames = data.regions;
+            var chooseRegionHtml = '<h4>请选择要修改启动参数的区域：</h4><div class="form-group">';
+
+            for (var i = 0; i < regionNames.length; i++){
+                console.log(regionNames[i])
+                chooseRegionHtml = chooseRegionHtml + '<div class="radio">' +
+                                            '<label>' +
+                                                '<input type="radio" name="optionsRadios" value="' + regionNames[i] +
+                                                    '" checked="">' + regionNames[i] +
+                                            '</label>' +
+                                         '</div>'
+            }
+            chooseRegionHtml = chooseRegionHtml + '</div>';
+            BootstrapDialog.show({
+                title: '区域选择',
+                message: chooseRegionHtml,
+                size: BootstrapDialog.SIZE_SMALL,
+                type: BootstrapDialog.TYPE_PRIMARY,
+                nl2br: false,
+                buttons: [{
+                    'id': 'choose-region-cancel',
+                    'label': 'cancel',
+                    'action': function (dialogRef) {
+                        dialogRef.close()
+                    }
+                },{
+                    'id': 'choose-region-ok',
+                    'label': 'choose it',
+                    'cssClass': 'btn-primary',
+                    'autospin': true,
+                    'action': function(dialogRef){
+                        showUpdateLaunchParams(moduleName, dialogRef)
+                    }
+                }]
+            })
+        })
+    }
+
+    function showUpdateLaunchParams(moduleName, dialogRef){
+        var region = $('input:radio[name=optionsRadios]:checked').val();
+        var getLaunchParamsReq = $.ajax({
+            url: '/module/get_modify_launch_params',
+            dataType: 'html',
+            data: {
+                'module_name': moduleName,
+                'region': region
+            },
+            type: 'get'
+        });
+        getLaunchParamsReq.fail(function(req){
+            dialogRef.close();
+            alertAjaxError(req)
+        });
+        getLaunchParamsReq.done(function(data){
+            dialogRef.close();
+            BootstrapDialog.show({
+                title: '修改启动参数：' + moduleName,
+                message: data,
+                size: BootstrapDialog.SIZE_WIDE,
+                nl2br: false,
+                closable: false,
+                buttons: [{
+                    icon: 'fa fa-check-square-o',
+                    label: '更新',
+                    cssClass: 'btn btn-warning',
+                    action: function(dialogRef){
+                        var tableInfo = collectTableInfo();
+                        console.log(tableInfo);
+                        dialogRef.close();
+                        updateLaunchParams(moduleName, tableInfo)
+                    }
+                },{
+                    icon: 'fa fa-times',
+                    label: '取消',
+                    cssClass: 'btn btn-primary',
+                    action: function(dialogRef){
+                        dialogRef.close()
+                    }
+                }]
+            })
+        })
+    }
+
+    function collectTableInfo(){
+        var result = {};
+        var inputs = [
+            ['selSubnets', 'subnets', 'json'],
+            ['selAMI', 'image', 'json'],
+            ['selInstanceType', 'instance_type', 'str'],
+            ['selKeyPairName', 'keypair', 'json'],
+            ['selSecurityGroup', 'security_group', 'json'],
+            ['chkEBSSettings', 'use_default_ebs_settings', 'bool'],
+            ['iVolumeIOPS', 'volume_iops', 'num'],
+            ['iVolumeSize', 'volume_size', 'num'],
+            ['selVolumeType', 'volume_type', 'str'],
+            ['chkSourceDestCheck', 'sourceDestCheck', 'bool'],
+            ['selInstanceProfile', 'instance_profile', 'json'],
+            ['chkAddToElb', 'add_instance_to_elb','bool'],
+            ['selLoadBalancer', 'elbs', 'str']
+        ];
+        for (var i = 0; i < inputs.length; i++) {
+            var id = inputs[i][0];
+            var attr = inputs[i][1];
+            var dataType = inputs[i][2];
+            var value = $('#' + id).val();
+            if (dataType == 'json') {
+                if (value == '') {
+                    result[attr] = '';
+                } else if(attr=='subnets'){
+                    result[attr] = [value.split('|')]
+                } else{
+                    result[attr] = value.split('|')
+                }
+            } else if (dataType == 'bool') {
+                result[attr] = $('#' + id).prop('checked');
+            } else if (dataType == 'num') {
+                if (value == '') {
+                    result[attr] = 0;
+                } else {
+                    result[attr] = parseInt(value);
+                }
+            } else {
+                result[attr] = value;
+            }
+        }
+        return result
+    }
+
+    function updateLaunchParams(moduleName, tableInfo){
+        var modifyParamsReq = $.ajax({
+            url: '/module/modify_launch_params',
+            type: 'POST',
+            data: {
+                'module_name': moduleName,
+                'region': region,
+                'table_info': JSON.stringify(tableInfo)
+            },
+            dataType: 'html'
+        });
+        modifyParamsReq.fail(function(request){
+            alertAjaxError(request)
+        });
+        modifyParamsReq.done(function(data){
+            $.globalMessenger().post({
+                message: "更新完成！",
+                type: "success",
+                hideAfter: '4',
+                showCloseButton: true
+            })
+        })
+    }
+
+    function clickChkElb(){
+        var checked = $('#chkAddToElb').prop('checked');
+        var elbSelector = $('#selLoadBalancer');
+        if (checked){
+            elbSelector.attr('disabled', false)
+        }else{
+            elbSelector.attr('disabled', true);
+            elbSelector.find('option').prop('selected', false)
+        }
+    }
+
+    function setVolumes(){
+        var checked = $('#chkEBSSettings').prop('checked');
+        var iIops = $('#iVolumeIOPS');
+        var iSize = $('#iVolumeSize');
+        var selType = $('#selVolumeType');
+        if (checked){
+            iIops.val(24);
+            iIops.attr('disabled', true);
+            iSize.val(8);
+            iSize.attr('disabled', true);
+            selType.find('option').each(function(){
+                if ($(this).val() == "gp2"){
+                    $(this).prop('selected', true)
+                }else{
+                    $(this).prop('selected', false)
+                }
+            });
+            selType.attr('disabled', true)
+        }else{
+            iIops.attr('disabled', false);
+            iSize.attr('disabled', false);
+            selType.attr('disabled', false)
+        }
+    }
 </script>
 {% endblock %}

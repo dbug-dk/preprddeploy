@@ -28,12 +28,13 @@ def do_get(url, **kwargs):
     get_args = ['%s=%s'% (key, value) for key, value in kwargs.items()]
     if get_args:
 	url = '%s?%s' % (url, '&'.join(get_args))
-        print 'get url is: %s' % url
+    print 'get url is: %s' % url
     req = urllib2.Request(url)
     print 'get method request: %s' % req
    
     resp = urllib2.urlopen(req)
     return resp.read()
+
 
 
 if __name__ == '__main__':
@@ -58,4 +59,5 @@ if __name__ == '__main__':
         print json.dumps(resp, indent=2)
 
     print ''
+
 

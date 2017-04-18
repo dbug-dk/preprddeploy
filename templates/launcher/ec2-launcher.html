@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="panel-body">
-        <button class="btn btn-primary" onclick="loadEc2OptionSet()">
+        <button class="btn btn-primary" onclick="refreshResourcesAndEc2OptionSets()">
             <span class="fa fa-refresh"></span><span style="margin-left:5px">Reload</span>
         </button>
         <table id="tableEc2OptionSetsList" class="table table-bordered table-hover">
@@ -39,66 +39,66 @@
     </div>
 </div>
 
-<div id="divEc2OptionSetInfo" style="display: none;">
-    <table id="tableEc2OptionSetInfo" class="table table-bordered table-striped">
-        <tbody id="tbodyEc2OptionSetInfo">
-            <tr>
-                <th>VPC</th>
-                <td id="tdVpc"></td>
-            </tr>
-            <tr>
-                <th>Subnets</th>
-                <td id="tdSubnets"></td>
-            </tr>
-            <tr>
-                <th>AMI</th>
-                <td id="tdAMI"></td>
-            </tr>
-            <tr>
-                <th>Instance Type</th>
-                <td id="tdInstanceType"></td>
-            </tr>
-            <tr>
-                <th>Key Pair Name</th>
-                <td id="tdKeyPairName"></td>
-            </tr>
-            <tr>
-                <th>Security Group</th>
-                <td id="tdSecurityGroup"></td>
-            </tr>
-            <tr>
-                <th>EBS Settings</th>
-                <td id="tdEBSSettings"></td>
-            </tr>
-            <tr>
-                <th>Volume IOPS</th>
-                <td id="tdVolumeIOPS"></td>
-            </tr>
-            <tr>
-                <th>Volume Size</th>
-                <td id="tdVolumeSize"></td>
-            </tr>
-            <tr>
-                <th>Volume Type</th>
-                <td id="tdVolumeType"></td>
-            </tr>
-            <tr>
-                <th>SourceDest. Check</th>
-                <td id="tdSourceDestCheck"></td>
-            </tr>
-            <tr>
-                <th>Instance Profile</th>
-                <td id="tdInstanceProfile"></td>
-            </tr>
-            <tr>
-                <th>Load Balancers</th>
-                <td id="tdLoadbalancers"></td>
-            <tr>
-                <th>Tags</th>
-                <td id="tdTags"></td>
-            </tr>
-        </tbody>
-    </table>
+<div class="modal fade">
+<table id="tableEc2OptionSetInfo" class="table table-bordered table-striped">
+    <tbody id="tbodyEc2OptionSetInfo">
+        <tr>
+            <th>VPC</th>
+            <td id="tdVpc"></td>
+        </tr>
+        <tr>
+            <th>Subnets</th>
+            <td id="tdSubnets"></td>
+        </tr>
+        <tr>
+            <th>AMI</th>
+            <td id="tdAMI"></td>
+        </tr>
+        <tr>
+            <th>Instance Type</th>
+            <td id="tdInstanceType"></td>
+        </tr>
+        <tr>
+            <th>Key Pair Name</th>
+            <td id="tdKeyPairName"></td>
+        </tr>
+        <tr>
+            <th>Security Group</th>
+            <td id="tdSecurityGroup"></td>
+        </tr>
+        <tr>
+            <th>EBS Settings</th>
+            <td id="tdEBSSettings"></td>
+        </tr>
+        <tr>
+            <th>Volume IOPS</th>
+            <td id="tdVolumeIOPS"></td>
+        </tr>
+        <tr>
+            <th>Volume Size</th>
+            <td id="tdVolumeSize"></td>
+        </tr>
+        <tr>
+            <th>Volume Type</th>
+            <td id="tdVolumeType"></td>
+        </tr>
+        <tr>
+            <th>SourceDest. Check</th>
+            <td id="tdSourceDestCheck"></td>
+        </tr>
+        <tr>
+            <th>Instance Profile</th>
+            <td id="tdInstanceProfile"></td>
+        </tr>
+        <tr>
+            <th>Load Balancers</th>
+            <td id="tdLoadbalancers"></td>
+        <tr>
+            <th>Tags</th>
+            <td id="tdTags"></td>
+        </tr>
+    </tbody>
+</table>
 </div>
 
 <div id="divRunInstanceState" style="display:none;">
@@ -112,156 +112,140 @@
     </div>
 </div>
 
-<div id="divEc2OptionSetEdit" style="display: none;">
-    <form autocomplete="off">
-    <table id="tableEc2OptionSetEdit" class="table table-bordered table-striped">
-        <tbody id="tbodyEc2OptionSetEdit">
-            <tr>
-                <th>Name</th>
-                <td>
-                    <input id="iName" class="form-control" />
-                </td>
-            </tr>
-            <tr>
-                <th>VPC</th>
-                <td>
-                    <select id="selVpc" class="form-control" onblur="InitVpcResources()"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>Subnets</th>
-                <td>
-                    <select id="selSubnets" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>AMI</th>
-                <td>
-                    <select id="selAMI" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>Instance Type</th>
-                <td>
-                    <select id="selInstanceType" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>Key Pair Name</th>
-                <td>
-                    <select id="selKeyPairName" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>Security Group</th>
-                <td>
-                    <select id="selSecurityGroup" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>EBS Settings</th>
-                <td>
-                    <input type="checkbox" id="chkEBSSettings" checked="checked" />
-                    <label for="chkEBSSettings">Use Default EBS Settings</label>
-                </td>
-            </tr>
-            <tr>
-                <th>Volume IOPS</th>
-                <td>
-                    <input id="iVolumeIOPS" type="number" class="form-control" />
-                </td>
-            </tr>
-            <tr>
-                <th>Volume Size</th>
-                <td>
-                    <input id="iVolumeSize" type="number" class="form-control" value=8 />
-                </td>
-            </tr>
-            <tr>
-                <th>Volume Type</th>
-                <td>
-                    <select id="selVolumeType" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>SourceDest. Check</th>
-                <td>
-                    <input type="checkbox" id="chkSourceDestCheck" checked="checked"/>
-                    <label for="chkSourceDestCheck">Enable Source/Dest. Check</label>
-                </td>
-            </tr>
-            <tr>
-                <th>Instance Profile</th>
-                <td>
-                    <select id="selInstanceProfile" class="form-control"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>Add To ELB</th>
-                <td>
-                    <input type="checkbox" id="chkAddToElb" />
-                    <label for="chkAddToElb">Add the instance to ELB</label>
-                </td>
-            </tr>
-            <tr>
-                <th>Load Balancer</th>
-                <td>
-                    <select id="selLoadBalancer" class="form-control" multiple="multiple"></select>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <span>Tags</span>
-                </th>
-                <td>
-                    <table>
-                        <tbody id="tbodyTags">
-                            <tr>
-                                <td><input class="form-control" type="text" name="tagKey[]" placeholder="Tag Key" value="Name"/></td>
-                                <td><input id="iTagNameValue" class="form-control" type="text" name="tagValue[]" placeholder="Tag Value" /></td>
-                            </tr>
-                            <tr>
-                                <td><input class="form-control" type="text" name="tagKey[]" placeholder="Tag Key" value="Category"/></td>
-                                <td><input class="form-control" type="text" name="tagValue[]" placeholder="Tag Value" value="preprd"/></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    </form>
+<div class="modal fade" id="divEc2OptionSetEdit">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Create Ec2OptionSet</h4>
+            </div>
+            <div class="modal-body">
+                <table id="tableEc2OptionSetEdit" class="table table-bordered table-striped">
+                    <tbody id="tbodyEc2OptionSetEdit">
+                        <tr>
+                            <th>Name</th>
+                            <td>
+                                <input id="iName" class="form-control" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>VPC</th>
+                            <td>
+                                <select id="selVpc" class="form-control" onblur="initVpcResources()"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Subnets</th>
+                            <td>
+                                <select id="selSubnets" class="form-control"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>AMI</th>
+                            <td>
+                                <select id="selAMI" class="form-control"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Instance Type</th>
+                            <td>
+                                <select id="selInstanceType" class="form-control"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Key Pair Name</th>
+                            <td>
+                                <select id="selKeyPairName" class="form-control"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Security Group</th>
+                            <td>
+                                <select id="selSecurityGroup" class="form-control"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>EBS Settings</th>
+                            <td>
+                                <input type="checkbox" id="chkEBSSettings" checked="checked" onclick="setVolumes()"/>
+                                <label for="chkEBSSettings">Use Default EBS Settings</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume IOPS</th>
+                            <td>
+                                <input id="iVolumeIOPS" type="number" class="form-control" value="24" disabled/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume Size</th>
+                            <td>
+                                <input id="iVolumeSize" type="number" class="form-control" value="8" disabled/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Volume Type</th>
+                            <td>
+                                <select id="selVolumeType" class="form-control" disabled></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>SourceDest. Check</th>
+                            <td>
+                                <input type="checkbox" id="chkSourceDestCheck" checked="checked"/>
+                                <label for="chkSourceDestCheck">Enable Source/Dest. Check</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Instance Profile</th>
+                            <td>
+                                <select id="selInstanceProfile" class="form-control"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Add To ELB</th>
+                            <td>
+                                <input type="checkbox" id="chkAddToElb" onclick="clickChkElb()"/>
+                                <label for="chkAddToElb">Add the instance to ELB</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Load Balancer</th>
+                            <td>
+                                <select id="selLoadBalancer" class="form-control" multiple="multiple" disabled></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <span>Tags</span>
+                            </th>
+                            <td>
+                                <table>
+                                    <tbody id="tbodyTags">
+                                        <tr>
+                                            <td><input class="form-control" type="text" name="tagKey[]" placeholder="Tag Key" value="Name"/></td>
+                                            <td><input id="iTagNameValue" class="form-control" type="text" name="tagValue[]" placeholder="Tag Value" /></td>
+                                        </tr>
+                                        <tr>
+                                            <td><input class="form-control" type="text" name="tagKey[]" placeholder="Tag Key" value="Category"/></td>
+                                            <td><input class="form-control" type="text" name="tagValue[]" placeholder="Tag Value" value="preprd"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Abort</button>
+                <button id='btnAction' type="button" class="btn btn-primary" onclick="createEc2OptionSet()">Create</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="divMessage" style="display:none"></div>
-<div id="divRun" style="display:none">
-    <div id="divRunStatus" class="alert alert-info" style="display:none"></div>
-    <table>
-        <tr>
-            <td>Please enter number of instances to run:</td>
-        </tr>
-        <tr>
-            <td>
-                <input id="iRunNumber" class="form-control" type="number" />
-            </td>
-        </tr>
-    </table>
-</div>
-<div id="divCopy" style="display:none">
-    <table>
-        <tr>
-            <td>Enter new name:</td>
-        </tr>
-        <tr>
-            <td>
-                <input class="form-control" type="text" />
-            </td>
-        </tr>
-    </table>
-</div>
-<div id="divDel" style="display:none">
-    <div class="alert alert-danger">Are you sure you want to delete this option set?</div>
-</div>
 {% else %}
 <h3 class="text-danger">你没有权限查看当前页面</h3>
 {% endif %}
@@ -269,27 +253,57 @@
 {% block script %}
 <script>
     var account = "{{ account_name }}";
-    var resouces = {};
+    var resources = {};
     var ec2opsets = [];
     var ec2opset = [];
 
+    $(document).ready(function(){
+        refreshResourcesAndEc2OptionSets()
+    });
 
+    function refreshResourcesAndEc2OptionSets(){
+        getResources();
+        getEc2OptionSets(account, region)
+    }
+
+    function getResources(){
+        var getResourcesReq = $.ajax({
+            url: 'get_resources',
+            method: 'get',
+            data: {
+                'account_name': account,
+                'region': region
+            },
+            dataType: 'json'
+        });
+        getResourcesReq.done(function(data){
+            resources = data;
+            $.globalMessenger().post({
+                message: "success load resources",
+                type: 'success',
+                hideAfter: 5,
+                showCloseButton: true
+            })
+        });
+        getResourcesReq.fail(function(req){
+            alertAjaxError(req)
+        })
+    }
 
     function updateResources(){
-        var dialog = alertMessage("Updating resources ...","small","Message");
-
+        var dialog = alertMessage("Updating resources ...", "small", "Message");
         var updateResourceReq = $.ajax({
             url: "update_resources",
             method: "get",
             data: {
-                "account": account,
+                "account_name": account,
                 "region": region
             },
             dataType: "json"
         });
-        updateResourceReq.fail(function(){
-            dialog.close()
-            alertMessage("Update resources failed.")
+        updateResourceReq.fail(function(req){
+            dialog.close();
+            alertAjaxError(req)
         });
         updateResourceReq.done(function(data){
             resources = data;
@@ -298,5 +312,649 @@
         })
     }
 
+    function showCreateEc2OptionSet() {
+        InitCreateForm();
+        var actionButton = $('#btnAction')
+        actionButton.attr('onclick', 'createEc2OptionSet()');
+        actionButton.text('create');
+        $('#divEc2OptionSetEdit').modal()
+    }
+
+    function initVpcResources(){
+        var vpc = JSON.parse($('#selVpc').val());
+        MakeSelectOptions('selSubnets', resources['subnets'][vpc[1]].sort(), null);
+        MakeSelectOptions('selSecurityGroup', resources['security_groups'][vpc[1]].sort(), null);
+        var elbs = resources['elbs'][vpc[1]];
+        if (elbs){
+            MakeSelectOptions('selLoadBalancer', elbs.sort(),null);
+        }
+    }
+
+    function InitCreateForm() {
+        /* Subnets & security groups are not initialized here since a vpc must
+        be selected before we can show them to the user. */
+        MakeSelectOptions('selVpc', resources['vpcs'].sort(), null);
+        MakeSelectOptions('selAMI', resources['images'].sort(), null);
+        MakeSelectOptions('selInstanceType', resources['instance_types'], null);
+        MakeSelectOptions('selKeyPairName', resources['keypairs'], null);
+        MakeSelectOptions('selInstanceProfile', resources['instance_profiles'], null);
+        MakeSelectOptions('selVolumeType', [['gp2', ''], ['io1', '']], null);
+    }
+
+    function MakeSelectOptions(selID, choices, active) {
+        var sel = $('#' + selID);
+        $('#'+selID+' option').remove();
+        for (var i = 0; i < choices.length; i++) {
+            var resourceName = choices[i][0];
+            var resourceId = choices[i][1];
+            var selValue = "";
+            var selHtml = "";
+            if (resourceId.length == 0){
+                selValue = resourceName;
+                selHtml = resourceName
+            }
+            else if(resourceName.length == 0){
+                selValue = resourceId;
+                selHtml = resourceId
+            }
+            else{
+                selValue = '["' + resourceName + '", "' + resourceId + '"]';
+                selHtml = resourceName + ' (' + resourceId + ')'
+            }
+            var option = $("<option></option>").prop("value", selValue).html(selHtml)
+            if(active){
+                if(selID == 'selLoadBalancer'){
+                    if(active.indexOf(resourceName) != -1){
+                        option.attr('selected',true)
+                    }
+                }
+                else{
+                    if (typeof(active) == 'object'){
+                        if(active.join(',') == choices[i].join(',')){
+                            option.attr('selected', true)
+                        }
+                    }
+                    else if(typeof(active) == 'string'){
+                        if(active == selValue){
+                            option.attr('selected',true)
+                        }
+                    }
+                }
+            }
+            option.appendTo(sel);
+        }
+    }
+
+    function createEc2OptionSet(){
+        try {
+            var newopset = collectCreateForm();
+        } catch (err) {
+            alertMessage(err, 'normal', 'Error Message', 'danger');
+            return;
+        }
+        // console.log(newopset);
+        var createOpsetReq = $.ajax({
+            url: "create_ec2optionset",
+            method: "post",
+            dataType: "json",
+            data: {
+                "account": account,
+                "region": region,
+                "json": JSON.stringify(newopset)
+            }
+        });
+        createOpsetReq.fail(function(req){
+            alertAjaxError(req)
+        });
+        createOpsetReq.done(function(data){
+            if (data.ret) {
+                getEc2OptionSets(account, region);
+                $('#divEc2OptionSetEdit').modal('hide');
+            } else {
+                alertMessage(data.msg, 'wide', 'Create Failed', 'danger');
+            }
+        })
+    }
+
+    function getEc2OptionSets(account, region){
+        var getOpsetsReq = $.ajax({
+            url: "get_ec2optionsets",
+            method: "get",
+            data: {
+                "account": account,
+                "region": region
+            },
+            dataType: "json"
+        });
+        getOpsetsReq.done(function(data){
+            ec2opsets = data;
+            // console.log(data);
+            $.globalMessenger().post({
+                message: "success load ec2option sets",
+                type: 'success',
+                hideAfter: 5,
+                showCloseButton: true
+            });
+            showEc2OptionSets();
+        });
+        getOpsetsReq.fail(function(req){
+            alertAjaxError(req)
+        })
+    }
+
+    function showEc2OptionSets(){
+        var tbody = $('#tbodyEc2OptionSetsList');
+        $('tr', tbody).remove();
+        for (var i = 0; i < ec2opsets.length; i++) {
+            var tr = $('<tr></tr>');
+            var td0 = $('<td>' + ec2opsets[i].name + '</td>').appendTo(tr);
+            var td1 = $('<td></td>').appendTo(tr);
+            var btnRun = $('<button onclick="showRunEc2OptionSet('+i.toString()+')" class="btn btn-primary btn-outline" style="margin-right:2px"></button>')
+                .append('<span class="fa fa-play"></span>')
+                .appendTo(td1);
+            var btnInfo = $('<button onclick="showEc2OptionSet('+i.toString()+')" class="btn btn-primary btn-outline" style="margin-right:2px"></button>')
+                .append('<span class="fa fa-file-text"></span>')
+                .appendTo(td1);
+            /*var btnCopy = $('<button onclick="ShowCopyEc2OptionSet(' + i.toString() + ')" class="btn btn-primary disabled" style="margin-right:2px"></button>')
+                .append('<span class="fa fa-copy"></span>')
+                .appendTo(td1);*/
+            var btnDel = $('<button onclick="showDelEc2OptionSet(' + i.toString() + ')" class="btn btn-primary btn-outline" style="margin-right:2px"></button>')
+                .append('<span class="fa fa-trash"></span>')
+                .appendTo(td1);
+            tr.appendTo(tbody);
+        }
+    }
+
+    function collectCreateForm(){
+        var newopset = {};
+        var inputs = [
+            ['iName', 'name', 'str'],
+            ['selVpc', 'vpc', 'json'],
+            ['selSubnets', 'subnets', 'json'],
+            ['selAMI', 'image', 'json'],
+            ['selInstanceType', 'instance_type', 'str'],
+            ['selKeyPairName', 'keypair', 'json'],
+            ['selSecurityGroup', 'security_group', 'json'],
+            ['chkEBSSettings', 'use_default_ebs_settings', 'bool'],
+            ['iVolumeIOPS', 'volume_iops', 'num'],
+            ['iVolumeSize', 'volume_size', 'num'],
+            ['selVolumeType', 'volume_type', 'str'],
+            ['chkSourceDestCheck', 'sourceDestCheck', 'bool'],
+            ['selInstanceProfile', 'instance_profile', 'json'],
+            ['chkAddToElb', 'add_instance_to_elb','bool'],
+            ['selLoadBalancer', 'elbs', 'str']
+        ];
+        for (var i = 0; i < inputs.length; i++) {
+            var id = inputs[i][0];
+            var attr = inputs[i][1];
+            var dataType = inputs[i][2];
+            var value = $('#' + id).val();
+            if (dataType == 'json') {
+                if (value == '') {
+                    newopset[attr] = '';
+                } else{
+                    newopset[attr] = JSON.parse(value)
+                }
+            } else if (dataType == 'bool') {
+                newopset[attr] = $('#' + id).prop('checked');
+            } else if (dataType == 'num') {
+                if (value == '') {
+                    newopset[attr] = 0;
+                } else {
+                    newopset[attr] = parseInt(value);
+                }
+            } else {
+                newopset[attr] = value;
+            }
+        }
+
+        try {
+            var tags = collectTags();
+        } catch (err) {
+            throw err;
+        }
+        newopset['tags'] = tags;
+        newopset['subnets'] = [newopset['subnets']];
+        return newopset;
+    }
+
+    function collectTags(){
+        var tags = {};
+        var tagKeyInputs = $('input[name="tagKey[]"]');
+        var tagValueInputs = $('input[name="tagValue[]"]');
+
+        for (var i = 0; i < tagKeyInputs.length; i++) {
+            var tagKey = $(tagKeyInputs[i]).val();
+            var tagValue = $(tagValueInputs[i]).val();
+            if (tagKey == "" || tagValue == "") {
+                throw "Tag key/value cannot be empty.";
+            } else {
+                tags[tagKey] = tagValue;
+            }
+        }
+        if (!tags.hasOwnProperty('Name')){
+            throw "Tag key: Name must set."
+        }
+        if (!tags.hasOwnProperty('Category')) {
+            throw "Tag key: Category must set."
+        }
+        return tags;
+    }
+
+    function showEc2OptionSet(idx){
+        var opset = ec2opsets[idx];
+        var opsetname = opset.name;
+        var module = opset.module;
+        var image = opset.image;
+        if(image){
+            $('#tdAMI').html(opset.image[0] + " (" + opset.image[1] + ")"); //ami
+        }
+        else{
+            $('#tdAMI').html("无"); //ami
+        }
+        if (module){
+            opsetname = opsetname +'|' + module
+        }
+        $('#tdVpc').html(opset.vpc[0] + " (" + opset.vpc[1] + ")");
+
+        $('#tdInstanceType').html(opset.instance_type); //instance type
+        $('#tdKeyPairName').html(opset.keypair[0]); //key pair name
+        $('#tdSecurityGroup').html(opset.security_group[0] + " (" + opset.security_group[1] + ")"); //security group
+        $('#tdEBSSettings').html(opset.use_default_ebs_settings.toString()); //ebs settings
+        $('#tdVolumeIOPS').html(opset.volume_iops); //volume iops
+        $('#tdVolumeSize').html(opset.volume_size); //volume size
+        $('#tdVolumeType').html(opset.volume_type); //volume type
+        $('#tdSourceDestCheck').html(opset.sourceDestCheck.toString()); //sourcedest check
+        $('#tdInstanceProfile').html(opset.instance_profile[0] + " (" + opset.instance_profile[1] + ")"); // instance profile
+        if(opset.add_instance_to_elb){
+            $('#tdLoadbalancers').html(opset.elbs.join("<br/>"))
+        }
+        else{
+            $('#tdLoadbalancers').html("无")
+        }
+        $('#tdSubnets').empty();
+        for (var i = 0; i < opset.subnets.length; i++) {
+            $('<div>' + opset.subnets[i][0] + '(' + opset.subnets[i][1] + ')</div>').appendTo('#tdSubnets');
+        }
+        $('#tdTags').empty();
+        for (var key in opset.tags) {
+            $('<div>' + key + ': ' + opset.tags[key] + '</div>').appendTo('#tdTags');
+        }
+        var alertDialog = new BootstrapDialog({
+            title : opsetname,
+            type : BootstrapDialog.TYPE_PRIMARY,
+            message: $('#tableEc2OptionSetInfo').prop('outerHTML'),
+            size: BootstrapDialog.SIZE_WIDE,
+            nl2br: false,
+            buttons:[{
+                id: 'alert-ok',
+                icon: 'fa fa-check-square-o',
+                label: 'ok',
+                action:function(dialogRef){
+                    dialogRef.close()
+                }
+            },{
+                id: 'btn-update-ec2opset',
+                icon: 'fa fa-pencil',
+                label: 'modify',
+                cssClass: 'btn btn-primary',
+                action: function(dialogRef){
+                    dialogRef.close();
+                    showUpdateEc2OptionSet(opset)
+                }
+            }]
+        });
+        alertDialog.open();
+    }
+
+    function showUpdateEc2OptionSet(opset){
+        initUpdateForm(opset);
+        var actionButton = $('#btnAction')
+        actionButton.attr('onclick', 'updateEc2OptionSet("' + opset.name + '")');
+        actionButton.text('update');
+        $('#divEc2OptionSetEdit').modal('show')
+    }
+
+    function initUpdateForm(opset){
+        $('#iName').val(opset.name);
+        MakeSelectOptions('selVpc', resources['vpcs'].sort(), opset.vpc);
+        MakeSelectOptions('selSubnets', resources['subnets'][opset.vpc[1]].sort(), opset.subnets);
+        MakeSelectOptions('selAMI', resources['images'].sort(), opset.image);
+        MakeSelectOptions('selInstanceType', resources['instance_types'], opset.instance_type);
+        MakeSelectOptions('selKeyPairName', resources['keypairs'], opset.keypair);
+        MakeSelectOptions('selSecurityGroup', resources['security_groups'][opset.vpc[1]].sort(), opset.security_group);
+        if(opset.use_default_ebs_settings){
+            $('#chkEBSSettings').attr("checked",true)
+        }
+        else{
+            $('#chkEBSSettings').attr("checked",false)
+        }
+        $("#iVolumeIOPS").val(opset.volume_iops);
+        $("#iVolumeSize").val(opset.volume_size);
+        MakeSelectOptions('selVolumeType', [['gp2', ''], ['io1', '']], opset.volume_type);
+        if(opset.sourceDestCheck){
+            $('#chkSourceDestCheck').attr("checked",true)
+        }
+        else{
+            $('#chkSourceDestCheck').attr("checked",false)
+        }
+        MakeSelectOptions('selInstanceProfile', resources['instance_profiles'], opset.instance_profile);
+        if(opset.add_instance_to_elb){
+            $('#chkAddToElb').attr("checked",true)
+        }
+        else{
+            $('#chkAddToElb').attr("checked",false)
+        }
+        var elbs = resources['elbs'][opset.vpc[1]];
+        if(elbs){
+            MakeSelectOptions('selLoadBalancer', elbs.sort(),opset.elbs);
+        }
+        for (var key in opset.tags) {
+            if(key == 'Name'){
+                $("#iTagNameValue").val(opset.tags[key])
+            }
+        }
+    }
+
+    function updateEc2OptionSet(oldName) {
+        try {
+            var newopset = collectCreateForm();
+        } catch (err) {
+            alertMessage(err);
+            return;
+        }
+        var updateEc2opsetReq = $.ajax({
+            url: "update_ec2optionset",
+            method: "post",
+            dataType: "json",
+            data: {
+                "account": account,
+                "region": region,
+                "oldName": oldName,
+                "json": JSON.stringify(newopset)
+            }
+        });
+        updateEc2opsetReq.fail(function(req){
+            alertAjaxError(req)
+        });
+        updateEc2opsetReq.done(function(data){
+            if(data.ret) {
+                getEc2OptionSets(account, region);
+                $('#divEc2OptionSetEdit').modal('hide')
+            } else {
+                alertMessage(data.msg, 'wide', 'Error', 'danger')
+            }
+        })
+    }
+
+    function showDelEc2OptionSet(idx){
+        var opset = ec2opsets[idx];
+        BootstrapDialog.confirm({
+            title: "Delete: " + opset.name,
+            message: 'Are you sure to delete opset: ' + opset.name,
+            type: BootstrapDialog.TYPE_WARNING,
+            draggable: true,
+            btnCancelLabel: "don't detele",
+            btnCancelClass: 'btn-default',
+            btnOkLabel: "sure, delete it",
+            btnOkClass: 'btn-primary',
+            callback: function(result){
+                if(result) {
+                    delEc2OptionSet(opset.name)
+                }
+            }
+        })
+    }
+
+    function delEc2OptionSet(opset_name){
+        var deleteOpsetReq = $.ajax({
+            url: "del_ec2optionset",
+            method: "post",
+            data: {
+                "account": account,
+                "region": region,
+                "ec2optionsetName": opset_name
+            },
+            dataType: "json"
+        });
+        deleteOpsetReq.fail(function(req){
+            alertAjaxError(req)
+        });
+        deleteOpsetReq.done(function(data){
+            if (data.ret) {
+                getEc2OptionSets(account, region)
+            } else {
+                alertMessage(data.msg, 'wide', 'delete failed error', 'danger');
+            }
+        })
+    }
+
+    function showRunEc2OptionSet(idx) {
+        var opset = ec2opsets[idx];
+        messageHtml = $('<div class="form-group"></div>');
+        messageHtml.append('<label>enter number of instances to launch: </lable>');
+        messageHtml.append('<input id="iRunNumber" class="form-control" type="number" />');
+
+        BootstrapDialog.show({
+            title: "Launch Instances: " + opset.name,
+            message: messageHtml,
+            size: BootstrapDialog.SIZE_SMALL,
+            nl2br: false,
+            closable: false,
+            draggable: true,
+            buttons: [
+                {
+                    label: 'run',
+                    cssClass: 'btn-primary',
+                    autospin: true,
+                    action: function (dialogRef) {
+                        var num = $('#iRunNumber').val();
+                        runEc2OptionSet(idx, num, dialogRef);
+                    }
+                },
+                {
+                    label: 'Close',
+                    action: function (dialogRef) {
+                        dialogRef.close()
+                    }
+                }
+            ]
+        })
+    }
+
+    function runEc2OptionSet(idx, num, dialogRef) {
+        var opset = ec2opsets[idx];
+
+        var runInstanceReq = $.ajax({
+            url: "run_ec2optionset",
+            data: {
+                account: account,
+                region: region,
+                ec2optionset: opset.name,
+                num: num
+            },
+            dataType: "json"
+        });
+        runInstanceReq.fail(function(req){
+            dialogRef.close();
+            alertAjaxError(req)
+        });
+        runInstanceReq.done(function(data){
+            dialogRef.close();
+            if(data.ret){
+                instanceIds = data.msg;
+                $.globalMessenger().post({
+                    message: "成功创建实例: " + instanceIds,
+                    type: 'success',
+                    hideAfter: 5,
+                    showCloseButton: true
+                });
+                addInstanceTags(opset.name, instanceIds);
+            }
+        })
+    }
+
+    function addInstanceTags(opsetName, instanceIds){
+        $.globalMessenger().post({
+            message: "添加实例和EBS标签：" + instanceIds,
+            type: 'info',
+            hideAfter: 5,
+            showCloseButton: true
+        });
+        var addEbsTagsReq = $.ajax({
+            url: 'add_instance_tags',
+            dataType: 'JSON',
+            type: 'POST',
+            data: {
+                'region': region,
+                'account': account,
+                'instanceIds': instanceIds,
+                'opsetName': opsetName
+            }
+        });
+        addEbsTagsReq.fail(function(req){
+            alertAjaxError(req)
+        });
+        addEbsTagsReq.done(function(data){
+            $.globalMessenger().post({
+                message: "成功添加实例和EBS标签: " + instanceIds,
+                type: 'success',
+                hideAfter: 5,
+                showCloseButton: true
+            })
+        })
+    }
+
+    function showModules(){
+        var getModulesReq = $.ajax({
+            url: 'get_all_update_modules',
+            dataType: 'html',
+            type: 'GET',
+            data: {
+                "region": region
+            }
+        });
+        getModulesReq.fail(function(request){
+            alertAjaxError(request)
+        });
+        getModulesReq.done(function(data){
+            BootstrapDialog.show({
+                title: '选择实例',
+                message: data,
+                size: BootstrapDialog.SIZE_WIDE,
+                nl2br: false,
+                buttons:[
+                    {
+                        icon: 'fa fa-check-square-o',
+                        label: '确定',
+                        cssClass: 'btn btn-primary',
+                        action : function(dialogRef){
+                            dialogRef.close();
+                            runInstancesBatch()
+                        }
+                    },
+                    {
+                        id: 'chose_elb_cancel',
+                        icon: 'fa fa-check-square-o',
+                        label: '取消',
+                        cssClass: 'btn btn-default',
+                        action : function(dialogRef){
+                            dialogRef.close()
+                        }
+                    }
+                ]
+            })
+        })
+    }
+
+    function selectAllModules(){
+        var chkSelectAll = $('#chkAllModules');
+        var checked = chkSelectAll.prop('checked');
+        chkSelectAll.parents('table').find('tbody input[type=checkbox]').each(function(){
+            $(this).prop('checked', checked)
+        })
+    }
+
+    function runInstancesBatch() {
+        var batchState = $('#divRunInstanceState');
+        batchState.removeAttr('style');
+        var runInstanceInfo = batchState.find('.panel-body');
+        runInstanceInfo.empty();
+        $('#tbody-choose-module').find(':checkbox').each(function () {
+            if ($(this).prop('checked')) {
+                var moduleName = $(this).parents('tr').attr('id');
+                moduleInfoHtml = '<div class="col-md-3">' +
+                        '<div class="alert alert-info">' +
+                        '<h4 class="text-center">' + moduleName + '</h4>' +
+                        '</div>' +
+                        '<div id="' + moduleName + '" class="text-center"></div>' +
+                        '</div>';
+                runInstanceInfo.append(moduleInfoHtml);
+                var launchReq = $.ajax({
+                    url: "run_instances_batch",
+                    dataType: "json",
+                    type: "GET",
+                    data: {
+                        'module_name': moduleName,
+                        'region': region,
+                        'account': account
+                    }
+                });
+                launchReq.fail(function (request) {
+                    alertAjaxError(request)
+                });
+                launchReq.done(function (data) {
+                    var result = data.success;
+                    var moduleName = data.module;
+                    var info = data.info;
+                    var moduleInfoElement = $('#' + moduleName);
+                    if (result) {
+                        moduleInfoElement.prev().removeClass('alert-info').addClass('alert-success')
+                    }
+                    else {
+                        moduleInfoElement.prev().removeClass('alert-info').addClass('alert-danger')
+                    }
+                    moduleInfoElement.text(info);
+                    addInstanceTags(moduleName, info.split(', '))
+                })
+            }
+        })
+    }
+
+    function clickChkElb(){
+        var checked = $('#chkAddToElb').prop('checked');
+        var elbSelector = $('#selLoadBalancer');
+        if (checked){
+            elbSelector.attr('disabled', false)
+        }else{
+            elbSelector.attr('disabled', true);
+            elbSelector.find('option').prop('selected', false)
+        }
+    }
+
+    function setVolumes(){
+        var checked = $('#chkEBSSettings').prop('checked');
+        var iIops = $('#iVolumeIOPS');
+        var iSize = $('#iVolumeSize');
+        var selType = $('#selVolumeType');
+        if (checked){
+            iIops.val(24);
+            iIops.attr('disabled', true);
+            iSize.val(8);
+            iSize.attr('disabled', true);
+            selType.find('option').each(function(){
+                if ($(this).val() == "gp2"){
+                    $(this).prop('selected', true)
+                }else{
+                    $(this).prop('selected', false)
+                }
+            });
+            selType.attr('disabled', true)
+        }else{
+            iIops.attr('disabled', false);
+            iSize.attr('disabled', false);
+            selType.attr('disabled', false)
+        }
+    }
 </script>
 {% endblock %}

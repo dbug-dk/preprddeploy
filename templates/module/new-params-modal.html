@@ -1,0 +1,156 @@
+<div id="divEc2OptionSetEdit">
+    <form autocomplete="off">
+    <h4 class="text-danger">未找到模块在区域：{{ region }}下的启动参数，请手动指定</h4>
+    <table id="tableEc2OptionSetEdit" class="table table-bordered table-striped">
+        <tbody id="tbodyEc2OptionSetEdit">
+            <tr>
+                <th>VPC</th>
+                <td id='vpcId'>
+                    {{ current_vpc.0 }}({{current_vpc.1}})
+                </td>
+            </tr>
+            <tr>
+                <th>Subnets</th>
+                <td>
+                    <select id="selSubnets" class="form-control" >
+                        {% for subnet_info in subnets %}
+                            {% if forloop.first %}
+                            <option value="{{subnet_info.0}}|{{subnet_info.1}}" selected="selected"> {{subnet_info.0}}({{ subnet_info.1}})</option>
+                            {% else %}
+                            <option value="{{subnet_info.0}}|{{subnet_info.1}}"> {{subnet_info.0}}({{ subnet_info.1}})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>AMI</th>
+                <td>
+                    <select id="selAMI" class="form-control">
+                        {% for ami_info in images %}
+                            {% if forloop.first %}
+                            <option value="{{ami_info.0}}|{{ami_info.1}}" selected="selected"> {{ami_info.0}}({{ ami_info.1}})</option>
+                            {% else %}
+                            <option value="{{ami_info.0}}|{{ami_info.1}}"> {{ami_info.0}}({{ ami_info.1}})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Instance Type</th>
+                <td>
+                    <select id="selInstanceType" class="form-control">
+                         {% for instance_type_info in instance_types %}
+                            {% if forloop.first %}
+                            <option value="{{instance_type_info.0}}" selected="selected"> {{instance_type_info.0}}</option>
+                            {% else %}
+                            <option value="{{instance_type_info.0}}"> {{instance_type_info.0}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Key Pair Name</th>
+                <td>
+                    <select id="selKeyPairName" class="form-control">
+                         {% for keypair_info in keypairs %}
+                            {% if forloop.first %}
+                            <option value="{{keypair_info.0}}|{{ keypair_info.1}}" selected="selected"> {{keypair_info.0}}({{ keypair_info.1}})</option>
+                            {% else %}
+                            <option value="{{keypair_info.0}}|{{ keypair_info.1}}"> {{keypair_info.0}}({{ keypair_info.1}})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Security Group</th>
+                <td>
+                    <select id="selSecurityGroup" class="form-control">
+                         {% for sg_info in security_groups %}
+                            {% if forloop.first %}
+                            <option value="{{sg_info.0}}|{{ sg_info.1}}" selected="selected"> {{sg_info.0}}({{ sg_info.1}})</option>
+                            {% else %}
+                            <option value="{{sg_info.0}}|{{ sg_info.1}}"> {{sg_info.0}}({{ sg_info.1}})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>EBS Settings</th>
+                <td>
+                    <input type="checkbox" id="chkEBSSettings" checked="checked" onclick="setVolumes()"/>
+                    <label for="chkEBSSettings">Use Default EBS Settings</label>
+                </td>
+            </tr>
+            <tr>
+                <th>Volume IOPS</th>
+                <td>
+                    <input id="iVolumeIOPS" type="number" class="form-control" value="24" disabled/>
+                </td>
+            </tr>
+            <tr>
+                <th>Volume Size</th>
+                <td>
+                    <input id="iVolumeSize" type="number" class="form-control" value="8" disabled/>
+                </td>
+            </tr>
+            <tr>
+                <th>Volume Type</th>
+                <td>
+                    <select id="selVolumeType" class="form-control" disabled>
+                         {% for volume_type_info in volume_types %}
+                            {% if volume_type_info.0 == 'gp2' %}
+                            <option value="{{volume_type_info.0}}" selected="selected"> {{volume_type_info.0}}</option>
+                            {% else %}
+                            <option value="{{volume_type_info.0}}"> {{volume_type_info.0}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>SourceDest. Check</th>
+                <td>
+                    <input type="checkbox" id="chkSourceDestCheck" checked="checked"/>
+                    <label for="chkSourceDestCheck">Enable Source/Dest. Check</label>
+                </td>
+            </tr>
+            <tr>
+                <th>Instance Profile</th>
+                <td>
+                    <select id="selInstanceProfile" class="form-control">
+                        {% for instance_profile_info in instance_profiles %}
+                            {% if forloop.first %}
+                            <option value="{{instance_profile_info.0}}|{{ instance_profile_info.1}}" selected="selected"> {{instance_profile_info.0}}({{ instance_profile_info.1}})</option>
+                            {% else %}
+                            <option value="{{instance_profile_info.0}}|{{ instance_profile_info.1}}"> {{instance_profile_info.0}}({{ instance_profile_info.1}})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Add To ELB</th>
+                <td>
+                    <input type="checkbox" id="chkAddToElb" onclick="clickChkElb()"/>
+                    <label for="chkAddToElb">Add the instance to ELB</label>
+                </td>
+            </tr>
+            <tr>
+                <th>Load Balancer</th>
+                <td>
+                    <select id="selLoadBalancer" class="form-control" multiple="multiple" disabled>
+                        {% for loadbalancer_info in loadbalancers %}
+                            <option value="{{loadbalancer_info.0}}"> {{loadbalancer_info.0}}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </form>
+</div>

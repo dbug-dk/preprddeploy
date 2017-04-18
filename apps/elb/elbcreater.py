@@ -159,7 +159,7 @@ class LoadBalancerCreater(object):
             logger.error(error_msg)
             # todo: send mail
             # MailSender().send_mail_when_exception_in_deamon(error_msg)
-            return False
+            raise Exception(error_msg)
 
     def __call__(self):
         LoadbalancerInfo.objects.all().delete()
