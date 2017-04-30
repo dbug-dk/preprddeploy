@@ -1,0 +1,862 @@
+{% extends "layout/layout.html" %}
+{% load guardian_tags %}
+{% block title %}
+服务部署与AMI
+{% endblock%}
+ {% load staticfiles %}
+{% block css%}
+<style>
+   .auto-scroll .modal-dialog{
+        max-height:896px;
+        overflow:auto;
+   }
+   .region-table{
+        margin-top:4px;
+        margin-bottom:4px
+   }
+   .pass {
+        background-color: #99ff99;
+   }
+   .fail {
+        background-color: #ff9999;
+   }
+</style>
+{% endblock %}
+
+{% block content %}
+{% get_obj_perms request.user for deploy_page as "deployPagePerms" %}
+{% if 'view' in deployPagePerms %}
+{#<ul class="nav nav-tabs">#}
+{#  <li class="active">#}
+{#    <a href="#serviceDeploy" data-toggle="tab" aria-expanded="true">服务部署</a></li>#}
+{#  <li class="">#}
+{#    <a href="#amiTools" data-toggle="tab" aria-expanded="true">AMI制作</a></li>#}
+{#</ul>#}
+{#<div class="tab-content">#}
+{#  <div class="tab-pane fade active in" id="serviceDeploy">#}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        <span>选择操作：</span>
+                    </td>
+                    <td hidden>
+                        <button class="btn btn-primary" onclick="viewConf()">
+                           <span class="fa fa-book"></span><span style="margin-left:5px">脚本配置</span>
+                        </button>
+                    </td>
+                    <td style="padding-left:5px;">
+                        <button class="btn btn-primary" onclick="preScriptRunning('createConfFiles')">
+                           <span class="fa fa-book"></span><span style="margin-left:5px">生成配置</span>
+                        </button>
+                    </td>
+                    <td style="padding-left:5px;">
+                        <button class="btn btn-primary" onclick="preScriptRunning('deploy')">
+                            <span class="fa fa-download"></span><span style="margin-left:5px">部署服务</span>
+                        </button>
+                    </td>
+                    <td style="padding-left:5px;">
+                        <button class="btn btn-primary" onclick="preScriptRunning('change')">
+                            <span class="fa fa-indent"></span><span style="margin-left:5px">替换生产配置</span>
+                        </button>
+                    </td>
+                    <td style="padding-left:5px;">
+                        <button class="btn btn-primary" onclick="preScriptRunning('createAmi')">
+                            <span class="fa fa-clock-o"></span><span style="margin-left:5px">制作AMI</span>
+                        </button>
+                    </td>
+                    <td style="padding-left:5px;">
+                        <button class="btn btn-primary" onclick="preScriptRunning('changeback')">
+                            <span class="fa fa-outdent"></span><span style="margin-left:5px">替换预生产配置</span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="panel-body" id="startRunScriptPanel" hidden>
+    </div>
+</div>
+{#  </div>#}
+{#  <div class="tab-pane fade" id="amiTools">#}
+{#    <div class="panel panel-info">#}
+{#        <div class="panel-heading">#}
+{#            <table>#}
+{#                <tbody>#}
+{#                    <tr>#}
+{#                        <td>#}
+{#                            <span>选择操作：</span>#}
+{#                        </td>#}
+{#                        <td style="padding-left:5px;">#}
+{#                            <button class="btn btn-primary" onclick="getUpdateModules()">#}
+{#                                <span class="fa fa-clock-o"></span><span style="margin-left:5px">制作业务AMI</span>#}
+{#                            </button>#}
+{#                        </td>#}
+{#                    </tr>#}
+{#                </tbody>#}
+{#            </table>  #}
+{#        </div>#}
+{#        <div class="panel-body" id="amiToolsInfo" hidden>#}
+{#        </div>#}
+{#    </div>#}
+{#  </div>#}
+{#</div>#}
+<div class='panel panel-primary' id='scriptExecInfo' hidden>
+    <div class='panel-heading'>
+    </div>
+    <div class='panel-body'>
+    </div>
+</div>
+{% else %}
+<h3 class="text-danger">你没有权限查看当前页面</h3>
+{% endif %}
+{% endblock %} 
+
+{% block script %}
+<script>
+username = '{{username}}';
+
+function viewConf(){
+    $('#scriptExecInfo').empty()
+                        .append('<div class="panel-heading"></div>')
+                        .append('<div class="panel-body"></div>').attr('hidden', true);
+    var infoElement = $('#startRunScriptPanel');
+    infoElement.attr('hidden', false);
+    infoElement.empty().append("<h3 class='text-center'>正在获取脚本配置...</h3>");
+    var getConfReq = $.ajax({
+        url: "view_script_config",
+        dataType: "html",
+        type: "GET",
+        data: {
+            "region": region
+        }
+    });
+    getConfReq.fail(function(request){
+        alertAjaxError(request)
+    });
+    getConfReq.done(function(data){
+        infoElement.empty().append(data)
+    })
+}
+
+function modifyConf(scriptConfName){
+    var currentTableId = 'serviceDeploy-' + scriptConfName.replace(/\./gm, '');
+    $('#' + currentTableId + ' thead').empty().append('<tr>' + 
+                                                        '<th colspan="2">' + 
+                                                            '<button class="btn btn-info" onclick="submitModify(\'' + scriptConfName + '\')">保存修改</button>' + 
+                                                            '<button class="btn btn-info" onclick="cancelModify(\'' + scriptConfName + '\')">取消</button>' + 
+                                                        '</th>' + 
+                                                    '</tr>');
+    $('#' + currentTableId + ' tbody td').each(function(){
+       var oldText = $(this).text();
+       $(this).html('<input class="form-control" value="' + oldText + '">') 
+    })
+}
+
+function submitModify(scriptConfName){
+    var currentTableId = 'serviceDeploy-' + scriptConfName.replace(/\./gm,'');
+    $('#' + currentTableId + ' thead tr th').append('<span>正在保存...</span>');
+    var formDatas = collectConfForm(currentTableId);
+    formDatas['scriptName'] = 'serviceDeploy';
+    formDatas['scriptConfName'] = scriptConfName;
+    $.post('modify_script_conf', formDatas, function(data){
+        if(data.ret){
+            $.globalMessenger().post({
+                message: "配置修改完成：" + data,
+                type: "success",
+                hideAfter: '4',
+                showCloseButton: true
+            });
+            $('#' + currentTableId + ' thead tr').html('<th colspan="2">' +
+                                                           '<button class="btn btn-info" onclick="modifyConf(\'' + scriptConfName + '\')">修改配置</button>' +
+                                                       '</th>'
+                                                       );
+            $('#' + currentTableId + ' tbody td').each(function(){
+               var newText = $(this).find('input').val();
+               $(this).html(newText)
+            })
+       }
+       else{
+            var text = responseTextFormat(data.msg);
+            alertMessage(text, 'wide', 'Modify Conf Error', 'danger');
+            cancelModify(scriptConfName)
+       }
+   });
+}
+
+function cancelModify(scriptConfName){
+    var currentTableId = 'serviceDeploy-' + scriptConfName.replace(/\./gm,'');
+    $('#' + currentTableId + ' thead tr th').append('<span>取消修改...</span>');
+    viewConf()
+}
+
+function selectAll(tableId){
+    var table = $('#' + tableId);
+    var selectState = table.find('th input[type=checkbox]').prop('checked');
+    table.find('tbody tr td input[type=checkbox]').each(function(){
+        $(this).prop('checked',selectState)
+    })
+}
+
+function customModules(tableId){
+    $('.show-module').attr('hidden',true);
+    $('.edit-module').attr('hidden',false);
+    var moduleTableBody = $('#' + tableId + ' tbody');
+    moduleTableBody.children('tr').each(function(){
+        $(this).append('<td>' + 
+                          '<button class="btn btn-danger btn-circle btn-xs" ' +
+                              'onclick="' + "deleteModuleWhenSave('" + $(this).attr('id') + "'" + ')">' +
+                                   '<i class="fa fa-times"></i>' +
+                          '</button>' +
+                       '</td>')
+    });
+    moduleTableBody.find('td').dblclick(function(){
+        var oldText = $(this).text();
+        $(this).html('<input type="text" value="' + oldText + '"></input>');
+        $(this).children('input').focus();
+        $(this).children('input').blur(function(){
+            $(this).parent('td').html(oldText)
+        });
+        $(this).children('input').keydown(function(){
+            if (event.keyCode == "13"){
+                var newText = $(this).val();
+                $(this).parent('td').html(newText)
+            }
+        })
+    });
+    var lastTrId = moduleTableBody.children('tr:last').attr('id');
+    var newTrId = 1;
+    if(!isNaN(parseInt(lastTrId))){
+        newTrId = parseInt(lastTrId) + 1
+    }
+    addModule(tableId, newTrId)
+}
+
+function addModule(tableId,trId){
+    var newId = trId + 1;
+    var moduleInfoInputHtml = '<tr id="' + trId +'">' +
+                                   '<td><input type="checkbox" checked="checked"></input></td>' + 
+                                   '<td><input type="text" placeholder="模块名"></input></td>' + 
+                                   '<td><input type="text" placeholder="当前版本"></input></td>' + 
+                                   '<td><input type="text" placeholder="更新版本"></input></td>';
+    if (trId != 1){
+        moduleInfoInputHtml = moduleInfoInputHtml + '<td>' +
+                                      '<button class="btn btn-danger btn-circle btn-xs" \
+                                               onclick="deleteModule(' + trId + ')">\
+                                           <i class="fa fa-times">\
+                                           </i>\
+                                       </button>\
+                                   </td>' 
+    }
+    moduleInfoInputHtml = moduleInfoInputHtml + '<td>' + 
+                          '<button class="btn btn-info btn-circle btn-xs" \
+                                   onclick="' + "addModule('" + tableId + "'," + newId + ')">\
+                               <i class="fa fa-plus">\
+                               </i>\
+                           </button>\
+                       </td>\
+                  </tr>';
+    $('#' + tableId + ' tbody').append(moduleInfoInputHtml)
+}
+
+function deleteModuleWhenSave(trId){
+    //just hidden, when save changes, detele these hidden elements.
+    $('tr#' + trId).attr('hidden', true)
+}
+
+function deleteModule(trId){
+    $('tr#' + trId).remove()
+}
+
+function saveChanges(tableId){
+    $('.show-module').attr('hidden',false);
+    $('.edit-module').attr('hidden',true);
+    $('#' + tableId + ' tr').each(function(){
+        if($(this).attr('hidden')){
+            $(this).remove()
+        }
+        else if($(this).children('td:eq(1)').has('input').length != 0){
+            if($(this).children('td:eq(1)').children('input').val() == ''
+             ||$(this).children('td:eq(3)').children('input').val() == ''
+             ){
+                $(this).remove()
+             }
+            else{
+                $(this).children('td').each(function(){
+                    if ($(this).index()>0 && $(this).index() < 4){
+                        var inputValue = $(this).children('input').val();
+                        $(this).html(inputValue.trim())
+                    }
+                    else if($(this).index()>3){
+                        $(this).remove()
+                    }
+                })
+            }
+        }else{
+            $(this).children('td:last').remove()
+        }
+    })
+}
+
+function cancelChanges(tableId){
+    $('.show-module').attr('hidden',false);
+    $('.edit-module').attr('hidden',true);
+    $('#' + tableId + ' tr').each(function(){
+        if ($(this).attr('hidden')){
+            $(this).attr('hidden',false)
+            $(this).children('td:last').remove()
+        }
+        else if ($(this).children('td:eq(1)').has('input').length!=0){
+            $(this).remove()
+        }
+        else{
+            $(this).children('td:last').remove()
+        }
+    })
+}
+
+function createConfFiles(){
+    BootstrapDialog.show({
+        title: '确认信息',
+        message: '是否扫描线上实例，更新基础服务IP？',
+        closable: true,
+        draggable: true,
+        buttons: [
+            {
+                label: "是的",
+                autospin: true,
+                cssClass: 'btn-primary',
+                action: function(dialogRef){
+                    dialogRef.enableButtons(false);
+                    dialogRef.setTitle('请稍后');
+                    dialogRef.setMessage('正在更新基础服务实例IP列表，大概需要30秒到一分钟的时间...');
+                    updateBasicIps(dialogRef)
+                }
+            },
+            {
+                label:"不用",
+                action:function(dialogRef){
+                    dialogRef.setMessage('正在生成所选模块配置文件...');
+                    startCreateConf(dialogRef)
+                }
+            }
+        ]
+    })
+}
+
+function updateBasicIps(dialogRef){
+    var updateBasicIpsReq = $.ajax({
+        url: 'update_basic_ips',
+        dataType: 'HTML',
+        type: "GET"
+    });
+    updateBasicIpsReq.fail(function(request){
+        dialogRef.close();
+        alertAjaxError(request)
+    });
+    updateBasicIpsReq.done(function(data){
+        dialogRef.setMessage('正在生成所选模块配置文件...');
+        startCreateConf(dialogRef)
+    })
+}
+
+function startCreateConf(dialogRef){
+    var moduleUpdateInfos = collectModuleForm('tableForcreateConfFiles', 3);
+    var moduleCurrentInfos = collectModuleForm('tableForcreateConfFiles', 2);
+    var createConfReq = $.ajax({
+        url: 'create_conf_file',
+        dataType: 'html',
+        type: 'POST',
+        data: {
+            'update_infos': JSON.stringify(moduleUpdateInfos),
+            'current_infos': JSON.stringify(moduleCurrentInfos),
+            'region': region
+        }
+    });
+    createConfReq.fail(function(request){
+        dialogRef.close();
+        alertAjaxError(request)
+    });
+    createConfReq.done(function(data){
+        dialogRef.close();
+        $('#scriptExecInfo').attr('hidden',false).empty().append(data)
+    })
+}
+
+function collectModuleForm(tableId, versionTdIndex){
+    var moduleInfoDict = {};
+    $('#' + tableId + ' tbody').find(':checkbox').each(function(){
+        if ($(this).prop('checked')){
+            var trEle = $(this).parents('tr');
+            var moduleName = trEle.find('td:eq(1)').text();
+            moduleInfoDict[moduleName] = trEle.find('td:eq(' + versionTdIndex + ')').text()
+        }
+    });
+    return moduleInfoDict
+}
+
+function preScriptRunning(method){
+    $('#scriptExecInfo').empty().append('<div class="panel-heading"></div>').append('<div class="panel-body"></div>').attr('hidden', true);
+    var infoElement = $('#startRunScriptPanel');
+    infoElement.attr('hidden',false);
+    infoElement.empty().append("<h3 class='text-center'>正在获取更新模块列表...</h3>");
+    $.ajax({
+        url:"get_script_choose_page",
+        dataType:"html",
+        data:{
+            'method': method,
+            'region': region
+        },
+        type:"GET",
+        error:function(request){
+            alertAjaxError(request);
+            infoElement.empty().append('<h3 class="text-center text-danger">获取更新模块列表出错！</h3>')
+        },
+        success:function(data){
+            infoElement.empty().append(data)
+        }
+    })
+}
+
+function deploy(){
+    moduleInfoDict = collectModuleForm('tableFordeploy', 3);
+    showSort(moduleInfoDict,'deploy')
+}
+
+function change(){
+    moduleInfoDict = collectModuleForm('tableForchange', 3);
+    showSort(moduleInfoDict,'change')
+}
+
+function changeback(){
+    moduleInfoDict = collectModuleForm('tableForchangeback', 3);
+    showSort(moduleInfoDict,'changeback')
+}
+
+function showSort(moduleInfoDict, method){
+    var moduleInfoJson = JSON.stringify(moduleInfoDict);
+    if (moduleInfoJson.length == 2){
+        alertMessage('请至少选择一个要部署的模块','small');
+        return
+    }
+    
+    $.ajax({
+        url: "get_module_sort",
+        dataType: "json",
+        data: {
+            'module_info_dict': moduleInfoJson,
+            'method':method
+        },
+        type: "POST",
+        error: function(request){
+            alertAjaxError(request)
+        },
+        success: function(data){
+            var ret = data.ret;
+            var deployModules = data.sorted_module_list;
+            var html = data.html;
+            if (method=='deploy'){
+                $('#scriptExecInfo .panel-heading').text('业务部署进度')
+            }else if (method == 'change'){
+                $('#scriptExecInfo .panel-heading').text('替换生产配置进度')
+            }else if (method == 'changeback'){
+                $('#scriptExecInfo .panel-heading').text('替换预生产环境配置进度')
+            }else{
+                $('#scriptExecInfo .panel-heading').text('脚本方法错误，停止执行')
+            }
+            $('#scriptExecInfo .panel-body').html(html);
+            $('#scriptExecInfo').attr('hidden',false);
+            if (ret){
+                startDeployScript(deployModules, method)
+            }
+        }
+    })
+}
+
+function startDeployScript(sortedModuleList, method){
+    if(sortedModuleList.length > 0){
+        var deployModuleName = sortedModuleList.pop();
+        var moduleVersion = moduleInfoDict[deployModuleName];
+        $('#' + deployModuleName + '-process-panel').removeClass('panel-default').addClass('panel-info');
+        var moduleCollapsedPanelHead = $('a[href="#collapse-' + deployModuleName + '"]');
+        moduleCollapsedPanelHead.after('<mark>运行中...</mark>');
+        var moduleCollapsedPanelBody = $('#collapse-' + deployModuleName);
+        moduleCollapsedPanelBody.collapse('toggle');
+        var deployInfoBody = $('#' + deployModuleName + '-info-body');
+        deployInfoBody.html('<h3 class="text-center">正在复制脚本到目标实例...</h3>');
+        var preworkReq = $.ajax({
+            url: 'do_work_before_deploy_run',
+            dataType: 'html',
+            type: 'GET',
+            data: {
+                'module_name': deployModuleName,
+                'module_version': moduleVersion,
+                'region': region,
+                'method': method
+            }
+        });
+        preworkReq.fail(function(request){
+            text = responseTextFormat(request.responseText);
+            deployInfoBody.html('<h3 class="text-danger">复制脚本到部署实例时出错：</h3>' + text)
+        });
+        preworkReq.done(function(data){
+            runServiceDeploy(deployModuleName, data, method, sortedModuleList)
+        })
+    }
+}
+
+function runServiceDeploy(moduleName, command, method, sortedModuleList){
+    var runScriptReq = $.ajax({
+        url: "run_service_deploy",
+        dataType: "html",
+        type: "POST",
+        data: {
+            'command': command,
+            'module_name': moduleName,
+            'region': region
+        }
+    });
+    runScriptReq.fail(function(request){
+        alertAjaxError(request)
+    });
+    runScriptReq.done(function(data){
+        var deployInfoBody = $('#' + moduleName + '-info-body');
+        deployInfoBody.empty();
+        deployInfoBody.html(data);
+        getResultFromRedis('serviceDeploy', method, sortedModuleList, moduleName);
+    })
+}
+
+function getResultFromRedis(scriptName, method, sortedModuleList, moduleName){
+    var getRedisResultReq = $.ajax({
+        url: "get_script_result/" + scriptName,
+        dataType: "json",
+        type: "GET",
+        data: {
+            'username': username,
+            'region': region
+        }
+    });
+    getRedisResultReq.fail(function(request){
+        alertAjaxError(request)
+    });
+    getRedisResultReq.done(function(data){
+        var end = data.is_end;
+        var processElement = $('#process-' + scriptName + '-' + moduleName);
+        var progressBar = processElement.find('.progress-bar');
+        if(!end){
+            var result = JSON.parse(data.result);
+            var percentage = result.percentage;
+            var detail = result.detail;
+            var todo = result.todo;
+            progressBar.attr('aria-valuenow',percentage*100);
+            progressBar.attr('style','width:' + percentage*100 + '%');
+            progressBar.text(percentage*100 + '%');
+            processElement.find('.todo').text(todo);
+            processElement.find('.detail').append('<li class="list-group-item">' + detail.replace('\n','<br/>') +'</li>');
+            setTimeout(function(){
+                getResultFromRedis(scriptName, method, sortedModuleList, moduleName)
+            }, 100);
+        }
+        else{
+            isSuccess = data.is_success;
+            if(isSuccess){
+                processElement.find('.todo').text('脚本执行完成');
+                progressBar.removeClass('active').addClass('progress-bar-success');
+                $('#' + moduleName + '-process-panel').find('mark').text('已完成');
+                $('#' + moduleName + '-process-panel').removeClass('panel-info').addClass('panel-success');
+                getScriptLogs(scriptName, moduleName);
+                $('#collapse-' + moduleName).collapse('hide');
+                if(sortedModuleList.length > 0){
+                    startDeployScript(sortedModuleList, method)
+                }
+            }
+            else{
+                result = data.result;
+                processElement.find('.todo').text('脚本执行失败，错误信息请查看完整日志,部署工作终止。');
+                processElement.find('.detail').append('<li class="list-group-item">' + result.split('\n').join('<br/>') +'</li>');
+                progressBar.removeClass('active').addClass('progress-bar-danger');
+                $('#' + moduleName + '-process-panel').find('mark').text('失败');
+                $('#' + moduleName + '-process-panel').removeClass('panel-info').addClass('panel-danger');
+                getScriptLogs(scriptName, moduleName);
+            }
+        }
+    })
+}
+
+function getScriptLogs(scriptName, moduleName){
+    var getScriptLogReq = $.ajax({
+        url: 'get_script_log',
+        dataType: "json",
+        type: "GET",
+        data: {
+            "script_name": scriptName
+        }
+    });
+    getScriptLogReq.done(function(data){
+        var content = data.log_content.replace('\n','<br/>');
+        var logElement = $('#logs-' + scriptName + '-' + moduleName);
+        logElement.append('<p class="hidden" id="logsContent-' + scriptName + '-' + moduleName + '">' + content + '</p>');
+        logElement.children('.alert-info').text('当前状态：已加载');
+        logElement.children('button').removeClass('disabled');
+    });
+    getScriptLogReq.fail(function(request){
+        alertAjaxError(request);
+        $('#logs-' + scriptName + '-' + moduleName).children('.alert-info').text('当前状态：加载失败')
+    })
+}
+
+var logContent = {"details": ""};
+var createAmiFinish = true;
+
+function createAmi() {
+    getAmiInstancesInfo()
+}
+
+function getAmiInstancesInfo(){
+    var amiProgressHtml = showAmiCreateProgressPanel();
+    var scriptExecInfo = $('#scriptExecInfo');
+    scriptExecInfo.children('.panel-heading').empty().text('AMI制作进度');
+    scriptExecInfo.children('.panel-body').html(amiProgressHtml);
+    scriptExecInfo.attr('hidden',false);
+    var moduleInfoDict = collectModuleForm('tableForcreateAmi', 3);
+    logContent['module_version_dict'] = moduleInfoDict;
+    var getAmiInstanceInfoReq = $.ajax({
+        url: 'get_ami_instances_info',
+        dataType: 'JSON',
+        data: {
+            'module_dict': JSON.stringify(moduleInfoDict),
+            'region': region
+        },
+        type: 'POST'
+    });
+    getAmiInstanceInfoReq.fail(function(request){
+        alertAjaxError(request);
+        createAmiFinish = true;
+        doCleanWorkAfterCreateAmi(false);
+
+    });
+    getAmiInstanceInfoReq.done(function(data){
+        var result = dealAmiResponseData(data);
+        if(result){
+            var moduleInstanceIdDict = data.module_id_dict;
+            var username = data.username;
+            checkInstancesConf(moduleInstanceIdDict, username, moduleInfoDict)
+        }
+    })
+}
+
+function dealAmiResponseData(data){
+    var isSuccess = data.ret;
+    var destInstancesInfo = data.info;
+    var processElement = $('#process-ami');
+    var progressBar = processElement.find('.progress-bar');
+    var percentage = destInstancesInfo.percentage;
+    var detail = destInstancesInfo.detail;
+    var todo = destInstancesInfo.todo;
+    logContent['details'] = logContent['details'] + detail;
+    progressBar.attr('aria-valuenow',percentage*100);
+    progressBar.attr('style','width:' + percentage*100 + '%');
+    progressBar.text(percentage*100 + '%');
+    processElement.find('.todo').text(todo);
+    processElement.find('.detail').append('<li class="list-group-item">' + detail.replace('\n','<br/>') +'</li>');
+    if (!isSuccess){
+        progressBar.removeClass('active').addClass('progress-bar-danger');
+        doCleanWorkAfterCreateAmi(false);
+        return false
+    }
+    else{
+        return true
+    }
+}
+
+function checkInstancesConf(moduleInstanceIdDict, username, moduleInfoDict){
+    var checkInstanceConfigReq = $.ajax({
+        url: "check_instances_conf",
+        dataType: "JSON",
+        data: {
+            'module_id_dict': JSON.stringify(moduleInstanceIdDict),
+            'region': region
+        },
+        type: 'POST'
+    });
+    checkInstanceConfigReq.fail(function(request){
+        alertAjaxError(request);
+        doCleanWorkAfterCreateAmi(false)
+    });
+    checkInstanceConfigReq.done(function(data){
+        var result = dealAmiResponseData(data);
+        if (result){
+            deleteLogs(moduleInstanceIdDict, username, moduleInfoDict)
+        }
+    })
+}
+
+function deleteLogs(moduleInstanceIdDict, username, moduleInfoDict){
+    var deleteLogsReq = $.ajax({
+        url: 'delete_module_logs',
+        dataType: 'json',
+        data: {
+            'username': username,
+            'region': region
+        },
+        type: 'GET'
+    });
+    deleteLogsReq.fail(function(request){
+        alertAjaxError(request);
+        doCleanWorkAfterCreateAmi(false)
+    });
+    deleteLogsReq.done(function(data){
+        var result = dealAmiResponseData(data);
+        if (result) {
+            generateAmi(moduleInstanceIdDict, moduleInfoDict)
+        }
+    })
+}
+
+function generateAmi(moduleInstanceIdDict, moduleInfoDict){
+    var generateAmiReq = $.ajax({
+        url: 'generate_ami',
+        dataType: 'json',
+        data: {
+            'region': region,
+            'module_version_dict': JSON.stringify(moduleInfoDict),
+            'module_id_dict': JSON.stringify(moduleInstanceIdDict)
+        },
+        type: 'POST'
+    });
+    generateAmiReq.fail(function(request){
+        alertAjaxError(request);
+        doCleanWorkAfterCreateAmi(false)
+    });
+    generateAmiReq.done(function(data){
+        var result = dealAmiResponseData(data);
+        if (result) {
+            var successAmiDict = data.success_ami;
+            addAuthToPrd(successAmiDict)
+        }
+    })
+}
+
+function addAuthToPrd(successAmiDict){
+    var addAuthReq = $.ajax({
+        url: 'add_auth_to_prd',
+        dataType: 'json',
+        data: {
+            'region': region,
+            'ami_to_auth': JSON.stringify(successAmiDict)
+        },
+        type: 'POST'
+    });
+    addAuthReq.fail(function(request){
+        alertAjaxError(request);
+        doCleanWorkAfterCreateAmi(false)
+    });
+    addAuthReq.done(function(data){
+        var result = dealAmiResponseData(data);
+        if (result){
+            doCleanWorkAfterCreateAmi(true)
+        }
+    })
+}
+
+function doCleanWorkAfterCreateAmi(isSuccess){
+    var cleanWorkReq = $.ajax({
+        url: 'do_work_after_create_ami',
+        dataType: 'HTML',
+        data: {
+            'result': isSuccess,
+            'username': username,
+            'log_content': JSON.stringify(logContent),
+            'region': region,
+        },
+        type: 'POST'
+    });
+    cleanWorkReq.fail(function(request){
+        alertAjaxError(request)
+    });
+    cleanWorkReq.done(function(data){
+        var processElement = $('#process-ami');
+        var todoElement = processElement.find('.todo');
+        if (isSuccess){
+            var progressBar = processElement.find('.progress-bar');
+            progressBar.attr('aria-valuenow',100);
+            progressBar.attr('style','width:100%');
+            progressBar.text('100%');
+            todoElement.text('AMI创建完成，日志已存入数据库');
+            progressBar.removeClass('active').addClass('progress-bar-success');
+        }
+        else {
+            todoElement.append('<p>日志已存入数据库</p>')
+        }
+    })
+}
+
+function showAmiCreateProgressPanel(){
+    var rowElement = $('<div class="col-md-12"></div>');
+    rowElement.append('<div id="process-ami">\
+                           <div class="progress">\
+                               <div class="progress-bar progress-bar-striped active" \
+                                    role="progressbar" aria-valuenow="0" \
+                                    aria-valuemin="0" aria-valuemax="100" \
+                                    style="width: 0%">\
+                                   <span>0%</span>\
+                               </div>\
+                           </div>\
+                           <div class="text-center todo">\
+                               开始制作AMI\
+                           </div>\
+                           <div class="list-group detail">\
+                           </div>\
+                        </div>');
+    return $('<div class="row" style="padding-top: 20px;"></div>').append(rowElement)
+}
+
+
+
+function showScriptLogs(scriptName, moduleName){
+    var logsInfo = $('#logsContent-' + scriptName + '-' + moduleName).html();
+    BootstrapDialog.show({
+        title: '日志信息',
+        message: logsInfo,
+        cssClass: 'auto-scroll',
+        size: BootstrapDialog.SIZE_WIDE,
+        buttons:[
+            {
+                id: 'view_logs_ok',
+                icon: 'fa fa-check-square-o',
+                label: '确定',
+                cssClass: 'btn btn-primary',
+                action : function(dialogRef){
+                    dialogRef.close()
+                }
+            }
+        ]
+    })
+}
+
+function collectConfForm(tableId){
+    var tr = $('#' + tableId + ' tbody tr');
+    var datas = {};
+    var sectionName = '';
+    var i = 0;
+    tr.each(function(){
+        if($(this).has('td').length){
+           var paramKey = $(this).children('th').text();
+           var paramValue = $(this).find('input').val();
+           var tmp = [sectionName, paramKey, paramValue];
+           datas[i] = tmp.join(';');
+           i++
+        }
+        else{
+           sectionName = $(this).find('mark').text();
+           sectionName = sectionName.trim().slice(1, -1)
+        }
+    });
+    return datas
+}
+
+</script>
+{% endblock %}

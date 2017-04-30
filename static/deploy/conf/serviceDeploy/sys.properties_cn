@@ -1,0 +1,16 @@
+[serviceVersion]
+logtransfer = 1.1.0
+healthcheck = 1.0.0
+
+[s3]
+serviceFileBucket = tplinkcloud-beta-deploy
+devopsFileBucket = tplinkcloud-beta-deploy
+
+[path]
+bridgeIp = 172.31.29.8
+
+[set]
+devopsTool=logtransfer, openfalcon
+
+
+

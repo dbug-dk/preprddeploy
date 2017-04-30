@@ -36,3 +36,21 @@ class LoadbalancerInfo(models.Model):
         elb_info = LoadbalancerInfo(module=module_info, elb_name=loadbalancer_name, region=region,
                                     elb_scheme=loadbalancer['Scheme'], dns_name=loadbalancer['DNSName'])
         elb_info.save()
+
+    @staticmethod
+    def get_all_elb_dns():
+        loadbalancers = LoadbalancerInfo.objects.all()
+        elb_context = {}
+        for elb_info in loadbalancers:
+            module_name = elb_info.module.module_name
+            region = elb_info.region
+            elb_scheme = elb_info.elb_scheme
+            dns = elb_info.dns_name
+            if module_name in elb_context:
+                if region in elb_context[module_name]:
+                    elb_context[module_name][region].update({elb_scheme: dns})
+                else:
+                    elb_context[module_name].update({region: {elb_scheme: dns}})
+            else:
+                elb_context.update({module_name: {region: {elb_scheme: dns}}})
+        return elb_context

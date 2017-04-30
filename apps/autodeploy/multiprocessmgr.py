@@ -59,7 +59,7 @@ class DeployWorker(Process):
         AutoDeployHistory.update_deploy_history(task_pid=0,
                                                 is_deploy_finish=True,
                                                 is_success=success_flag,
-                                                end_time=datetime.utcnow())
+                                                end_time=datetime.now())
 
 
 class ResultWorker(Process):
@@ -75,7 +75,7 @@ class ResultWorker(Process):
             if result is None:
                 logger.info('Found None in result queue, result worker exiting')
                 # add log to db, get current progress info(current first step-1), and read log file content
-		self.resultQueue.task_done()
+                self.resultQueue.task_done()
                 break
             logger.info('get new deploy result: %s, start to deal with it.' % result)
             # do work with result
@@ -86,8 +86,8 @@ class ResultWorker(Process):
                 error_msg += traceback.format_exc()
                 logger.error(error_msg)
                 break
-	    else:
-	        logger.info('finish deal with deploy result: %s' % result)
+            else:
+                logger.info('finish deal with deploy result: %s' % result)
                 self.resultQueue.task_done()
         AutoDeployHistory.update_deploy_history(result_pid=0, is_result_finish=True)
 

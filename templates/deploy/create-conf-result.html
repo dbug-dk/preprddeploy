@@ -1,0 +1,123 @@
+<div class='panel panel-success'>
+    <div class="panel-heading">
+        成功生成配置列表
+    </div>
+    <div class="panel-body">
+        <ul class="nav nav-tabs">
+            {% for module, _ in success.items %}
+            {% if forloop.first %}
+                <li class="active"><a href="#{{module}}-confs" data-toggle="tab" aria-expanded="true">{{module}}</a>
+                </li>
+            {% else %}
+                <li class=""><a href="#{{module}}-confs" data-toggle="tab" aria-expanded="true">{{module}}</a>
+                </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        <div class="tab-content">
+            {% for module, conf_info in success.items %}
+            <div class="tab-pane fade {% if forloop.first %}active in{% endif %}" id="{{module}}-confs">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        {% for conf_name, conf_content in conf_info.items %}
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-link" data-toggle="modal" data-target="#{{module}}-{{conf_name|cut:'.'}}">{{conf_name}}</button>
+                        </div>
+                        <!-- Modal -->
+                        <div class="modal fade" id="{{module}}-{{conf_name|cut:'.'}}" tabindex="-1" role="dialog" aria-labelledby="{{conf_name}}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                        <h4 class="modal-title">{{ conf_name }}</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        {{ conf_content|linebreaks }}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% if fail or unknown%}
+<div class='panel panel-danger'>
+    <div class="panel-heading">
+        配置创建失败列表
+    </div>
+    <div class="panel-body">
+        <ol>
+            {% for module, reason_lines in fail.items %}
+            <li>
+                {{ module }}
+            </li>
+            <div class="alert alert-danger">
+                <ul>
+                {% for reason in reason_lines %}
+                    <li style="list-style:none;">
+                        {{ reason }}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+            {% for module in unknown %}
+            <li>
+                {{ module }}: unknown module name
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+{% endif %}
+{% if diff_infos %}
+<div class='panel panel-primary'>
+    <div class="panel-heading">
+        配置模板diff结果
+    </div>
+    <div class="panel-body">
+        <ul class="nav nav-tabs">
+            {% for module, diff_info in diff_infos.items %}
+            {% if forloop.first %}
+                <li class="active"><a href="#{{ module }}-diffs" data-toggle="tab" aria-expanded="true">{{ module }}</a>
+                </li>
+            {% else %}
+                <li class=""><a href="#{{ module }}-diffs" data-toggle="tab" aria-expanded="true">{{ module }}</a>
+                </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        <div class="tab-content">
+            {% for module, diff_info in diff_infos.items %}
+            <div class="tab-pane fade {% if forloop.first %}active in{% endif %}" id="{{ module }}-diffs">
+               <div class="panel panel-default">
+                   <div class="panel-body">
+                        {% for success, diff_file_dir, diff_file_name in diff_info %}
+                        <div class="col-md-3">
+                            <button class="btn btn-{% if success %}success{% else %}danger{% endif %} btn-link" onclick="openNewPage('{{ diff_file_dir }}/{{ diff_file_name}}')">{{ diff_file_name }}</button>
+                        </div>
+                        {% endfor %}
+                     </div>
+                 </div>
+             </div>
+             {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+<script>
+function openNewPage(url){
+    var protocol = window.location.protocol;
+    var currentHost = window.location.host;
+    var currentUrl = protocol + '//' + currentHost + '/templates/templateDiffer/' + url;
+    window.open(currentUrl)
+}
+</script>

@@ -13,7 +13,9 @@ PAGE_INDEX = (
     ('basic', u'基础服务管理'),
     ('uploader', u'包上传'),
     ('bizmodule', u'业务实例管理'),
-    ('launcher', u'EC2实例创建')
+    ('launcher', u'EC2实例创建'),
+    ('deploy', u'服务部署与AMI制作'),
+    ('autodeploy', u'一键化部署')
 )
 
 

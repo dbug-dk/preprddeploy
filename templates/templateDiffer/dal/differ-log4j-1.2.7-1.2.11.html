@@ -1,0 +1,79 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=ISO-8859-1" />
+    <title></title>
+    <style type="text/css">
+        table.diff {font-family:Courier; border:medium;}
+        .diff_header {background-color:#e0e0e0}
+        td.diff_header {text-align:right}
+        .diff_next {background-color:#c0c0c0}
+        .diff_add {background-color:#aaffaa}
+        .diff_chg {background-color:#ffff77}
+        .diff_sub {background-color:#ffaaaa}
+    </style>
+</head>
+
+<body>
+    
+    <table class="diff" id="difflib_chg_to5__top"
+           cellspacing="0" cellpadding="0" rules="groups" >
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        
+        <tbody>
+            <tr><td class="diff_next" id="difflib_chg_to5__0"><a href="#difflib_chg_to5__top">t</a></td><td class="diff_header" id="from5_1">1</td><td nowrap="nowrap"><span class="diff_sub">no&nbsp;conf&nbsp;template&nbsp;found:&nbsp;dal-log4j-1.2.7</span></td><td class="diff_next"><a href="#difflib_chg_to5__top">t</a></td><td class="diff_header" id="to5_1">1</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;Log4j&nbsp;config</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_2">2</td><td nowrap="nowrap"><span class="diff_add">log4j.rootLogger=ERROR,rollingfile</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_3">3</td><td nowrap="nowrap"><span class="diff_add">log4j.addivity.org.apache=true</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_4">4</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;ifequal&nbsp;env&nbsp;"prd"&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_5">5</td><td nowrap="nowrap"><span class="diff_add">log4j.logger.com.tplink.cloud=INFO</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_6">6</td><td nowrap="nowrap"><span class="diff_add">log4j.logger.com.tplink.cloud.dal.dubbo=INFO</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_7">7</td><td nowrap="nowrap"><span class="diff_add">log4j.logger.com.tplink.cloud.dal.dao.impl=INFO</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_8">8</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;else&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_9">9</td><td nowrap="nowrap"><span class="diff_add">log4j.logger.com.tplink.cloud=DEBUG</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_10">10</td><td nowrap="nowrap"><span class="diff_add">log4j.logger.com.tplink.cloud.dal.dubbo=DEBUG</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_11">11</td><td nowrap="nowrap"><span class="diff_add">log4j.logger.com.tplink.cloud.dal.dao.impl=DEBUG</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_12">12</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;endifequal&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_13">13</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_14">14</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;console&nbsp;log&nbsp;output</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_15">15</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.stdout=org.apache.log4j.ConsoleAppender</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_16">16</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.stdout.layout=org.apache.log4j.PatternLayout</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_17">17</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.stdout.layout.ConversionPattern=%d&nbsp;|&nbsp;%-5p&nbsp;|&nbsp;%t&nbsp;|&nbsp;%F:%L&nbsp;|&nbsp;-&nbsp;%m%n</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_18">18</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_19">19</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;rolling&nbsp;file&nbsp;log&nbsp;output</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_20">20</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile=org.apache.log4j.RollingFileAppender</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_21">21</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.file=logs/cloud-dal.log</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_22">22</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.append=true</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_23">23</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;ifequal&nbsp;env&nbsp;"prd"&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_24">24</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.bufferedIO=true</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_25">25</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.bufferSize=8192</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_26">26</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;endifequal&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_27">27</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.maxBackupIndex=20</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_28">28</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.maxFileSize=20MB</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_29">29</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.layout=org.apache.log4j.PatternLayout</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to5_30">30</td><td nowrap="nowrap"><span class="diff_add">log4j.appender.rollingfile.layout.ConversionPattern=%d&nbsp;|&nbsp;%-5p&nbsp;|&nbsp;%t&nbsp;|&nbsp;%F:%L&nbsp;|&nbsp;-&nbsp;%m%n</span></td></tr>
+        </tbody>
+    </table>
+    <table class="diff" summary="Legends">
+        <tr> <th colspan="2"> Legends </th> </tr>
+        <tr> <td> <table border="" summary="Colors">
+                      <tr><th> Colors </th> </tr>
+                      <tr><td class="diff_add">&nbsp;Added&nbsp;</td></tr>
+                      <tr><td class="diff_chg">Changed</td> </tr>
+                      <tr><td class="diff_sub">Deleted</td> </tr>
+                  </table></td>
+             <td> <table border="" summary="Links">
+                      <tr><th colspan="2"> Links </th> </tr>
+                      <tr><td>(f)irst change</td> </tr>
+                      <tr><td>(n)ext change</td> </tr>
+                      <tr><td>(t)op</td> </tr>
+                  </table></td> </tr>
+    </table>
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+[serviceVersion]
+logcatchagent = 1.1.0
+logtransfer = 1.2.0
+healthcheck = 1.0.0
+
+[s3]
+servicefilebucket = cloud-deploy-file
+otherfilebucket = 3rd-deploy-file
+devopsfilebucket = cloud-devops-tools
+
+[path]
+userpath = /home/ubuntu
+bridgeip = 10.92.0.143
+
+[set]
+standardservice = infoquery,eventloop,eswatcher,kafka2es,dal,crosssync,account,device,appservice,pushservice,ddns,ipcamera,dispatcher,assemblerEn,connector,appconnector,mail,vaservice,sefcore,mailvalidator,notification,devValidator,eventloopKafka,eventloopRabbitMq,auth,passthrough
+tomcatservice = accountweb,appserver,webmanager,oamanager,appserverinternal,vaserver,eweb,storage,logAnalysisWeb,oauthserver,gwAppserver
+devopstool = logtransfer,openfalcon,logcatchagent,healthcheck
+region = cn-north-1,us-east-1,eu-west-1,ap-southeast-1

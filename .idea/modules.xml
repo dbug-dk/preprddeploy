@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$USER_HOME$/PycharmProjects/untitled/.idea/Python Script.iml" filepath="$USER_HOME$/PycharmProjects/untitled/.idea/Python Script.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/preprddeploy.iml" filepath="$PROJECT_DIR$/.idea/preprddeploy.iml" />
-      <module fileurl="file://F:/eclipsespace/preprdDeployment/.idea/preprddeployment.iml" filepath="F:/eclipsespace/preprdDeployment/.idea/preprddeployment.iml" />
       <module fileurl="file://F:/eclipsespace/sasa/.idea/sasa.iml" filepath="F:/eclipsespace/sasa/.idea/sasa.iml" />
+      <module fileurl="file://F:/eclipsespace/serviceDeploy/.idea/serviceDeploy.iml" filepath="F:/eclipsespace/serviceDeploy/.idea/serviceDeploy.iml" />
+      <module fileurl="file://F:/eclipsespace/test/.idea/test.iml" filepath="F:/eclipsespace/test/.idea/test.iml" />
     </modules>
   </component>
 </project>

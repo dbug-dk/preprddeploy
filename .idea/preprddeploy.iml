@@ -16,8 +16,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="preprddeployment" />
     <orderEntry type="module" module-name="sasa" />
+    <orderEntry type="module" module-name="Python Script" />
+    <orderEntry type="module" module-name="serviceDeploy" />
+    <orderEntry type="module" module-name="test" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="myDocStringFormat" value="Google" />

@@ -70,10 +70,13 @@ def __get_result_worker(progress_name):
 def get_status(request):
     try:
         upgrade_version = request.GET.get('upgrade_version')
-        if upgrade_version:
-            deploy_history_obj = AutoDeployHistory.objects.filter(upgrade_version=upgrade_version).order_by('-start_time')[0]
-        else:
-            deploy_history_obj = AutoDeployHistory.objects.order_by('-start_time')[0]
+        try:
+            if upgrade_version:
+                deploy_history_obj = AutoDeployHistory.objects.filter(upgrade_version=upgrade_version).order_by('-start_time')[0]
+            else:
+                deploy_history_obj = AutoDeployHistory.objects.order_by('-start_time')[0]
+        except IndexError:
+            return HttpResponse(json.dumps({'status': 500, 'msg': 'there is no history process.'}))
         progress_name = deploy_history_obj.progress_name
         start_time = deploy_history_obj.start_time
         status = {
@@ -91,10 +94,10 @@ def get_status(request):
             status.update({'current_task_name': current_task_name})
         else:
             end_time = deploy_history_obj.end_time
-            duration = '%s seconds' % (end_time - start_time).total_seconds()
+            duration = '%s seconds' % (start_time - end_time).total_seconds()
             status.update({'duration': duration})
             status.update({'end_time': end_time.strftime('%Y:%m:%d %H:%M:%S')})
+            status.update({'is_success': deploy_history_obj.is_success})
         return HttpResponse(json.dumps({'status': 200, 'msg': status}))
     except:
         return HttpResponse(json.dumps({'status': 500, 'msg': traceback.format_exc()}))
-

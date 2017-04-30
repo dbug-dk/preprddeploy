@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'basicservice',
     'bizmodule',
     'launcher',
+    'deploy',
     'autodeploy'
 )
 
@@ -125,7 +126,7 @@ USE_I18N = False
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -234,10 +235,18 @@ ELB_MODULES = {
 }
 
 TOPO_MODULES = ['nat', 'ci_test', 'dns']
+# DEVOPS_TOOL = ['logtransfer', 'openfalcon', 'logcatchagent', 'healthcheck']
 
 ACCOUNT_NAME = 'beta'
-HOME_PATH = '/home/ubuntu'
+HOME_PATH = 'F:\\'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
+DEVOPS_DIR = os.path.join(HOME_PATH, 'cloud-ops')
+KEY_PATH = os.path.join(HOME_PATH, 'pem')
+DEPLOY_BUCKET_NAME = 'tplinkcloud-beta-deploy'
+# for en
+# DEPLOY_BUCKET_NAME = 'cloud-deploy-file'
+
+MODULE_DEPLOY_CONF_DIR = os.path.join(DEVOPS_DIR, 'serviceDeploy/cloud-service-conf')
 HOSTS_CACHE_TIME_SECONDS = 60
 
 MAX_WAIT_SECONDS_EVERY_LAYER = 300
@@ -254,3 +263,9 @@ AUTO_DEPLOY_PROGRESS = {
         )
     }
 }
+
+# ec2 check
+JAVA_PATH = "/usr/local/jdk1.7.0_60/bin"
+FILES = ["/usr/local/jdk1.7.0_60/bin/java"]
+PYTHON_MODULES = ["awscli", "boto", "fabric", "psutil"]
+PACKAGES = ['gcc', 'make', 'mysql-client', 'lrzsz', 'zip', 'ntp', 'python-pip']

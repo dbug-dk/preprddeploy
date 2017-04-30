@@ -15,5 +15,6 @@ urlpatterns = [
     url(r'^basic/', include('basicservice.urls')),
     url(r'^biz/', include('bizmodule.urls')),
     url(r'^launcher/', include('launcher.urls')),
+    url(r'^deploy/', include('deploy.urls')),
     url(r'^autodeploy/', include('autodeploy.urls'))
 ]

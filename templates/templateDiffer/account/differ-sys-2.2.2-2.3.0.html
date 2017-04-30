@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=ISO-8859-1" />
+    <title></title>
+    <style type="text/css">
+        table.diff {font-family:Courier; border:medium;}
+        .diff_header {background-color:#e0e0e0}
+        td.diff_header {text-align:right}
+        .diff_next {background-color:#c0c0c0}
+        .diff_add {background-color:#aaffaa}
+        .diff_chg {background-color:#ffff77}
+        .diff_sub {background-color:#ffaaaa}
+    </style>
+</head>
+
+<body>
+    
+    <table class="diff" id="difflib_chg_to6__top"
+           cellspacing="0" cellpadding="0" rules="groups" >
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        
+        <tbody>
+            <tr><td class="diff_next" id="difflib_chg_to6__0"><a href="#difflib_chg_to6__top">t</a></td><td class="diff_header" id="from6_1">1</td><td nowrap="nowrap"><span class="diff_sub">no&nbsp;conf&nbsp;template&nbsp;found:&nbsp;account-sys-2.2.2</span></td><td class="diff_next"><a href="#difflib_chg_to6__top">t</a></td><td class="diff_header" id="to6_1">1</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;load&nbsp;deploy_conf_create&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_2">2</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;Zookeeper</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_3">3</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;zookeeper&nbsp;addrs,&nbsp;separate&nbsp;by&nbsp;comma</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_4">4</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;e.g.&nbsp;zookeeper.address=192.168.137.100:2181,192.168.137.101:2181,192.168.137.102:2181</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_5">5</td><td nowrap="nowrap"><span class="diff_add">{%&nbsp;get_service_ips&nbsp;"zookeeper"&nbsp;""&nbsp;as&nbsp;zkIps&nbsp;%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_6">6</td><td nowrap="nowrap"><span class="diff_add">zookeeper.address={%&nbsp;contactIpAndPort&nbsp;zkIps&nbsp;2181&nbsp;True%}</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_7">7</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_8">8</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;Cloud&nbsp;rpc</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_9">9</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;need&nbsp;specify&nbsp;a&nbsp;host&nbsp;address&nbsp;running&nbsp;in&nbsp;the&nbsp;multi&nbsp;network&nbsp;interfaces&nbsp;env</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_10">10</td><td nowrap="nowrap"><span class="diff_add">#rpc.host=127.0.0.1</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_11">11</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_12">12</td><td nowrap="nowrap"><span class="diff_add">rpc.account.service.name=accountService</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_13">13</td><td nowrap="nowrap"><span class="diff_add">rpc.account.service.port=20100</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_14">14</td><td nowrap="nowrap"><span class="diff_add">rpc.account.service.threads=100</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_15">15</td><td nowrap="nowrap"><span class="diff_add">rpc.account.service.queues=100</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_16">16</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_17">17</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;dubbo</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_18">18</td><td nowrap="nowrap"><span class="diff_add">dubbo.sms.service.reference.check.enabled=false</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_19">19</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_20">20</td><td nowrap="nowrap"><span class="diff_add">dubbo.dal.service.reference.check.enabled=true</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_21">21</td><td nowrap="nowrap"><span class="diff_add">dubbo.dal.service.reference.timeout.millis=3000</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_22">22</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_23">23</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;mail</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_24">24</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;mail&nbsp;server</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_25">25</td><td nowrap="nowrap"><span class="diff_add">mail.host=internal-prod-elb-mail-internal-1882841969.cn-north-1.elb.amazonaws.com.cn</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_26">26</td><td nowrap="nowrap"><span class="diff_add">mail.port=25</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_27">27</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_28">28</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;if&nbsp;auth=true,&nbsp;then&nbsp;mail.username&nbsp;and&nbsp;mail.password&nbsp;required</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_29">29</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;else&nbsp;not&nbsp;set&nbsp;any&nbsp;value&nbsp;for&nbsp;mail.username&nbsp;and&nbsp;mail.password</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_30">30</td><td nowrap="nowrap"><span class="diff_add">mail.auth.enabled=false</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_31">31</td><td nowrap="nowrap"><span class="diff_add">mail.username=</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_32">32</td><td nowrap="nowrap"><span class="diff_add">mail.password=</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_33">33</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_34">34</td><td nowrap="nowrap"><span class="diff_add">mail.from=no-reply@tplinkcloud.com.cn</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_35">35</td><td nowrap="nowrap"><span class="diff_add">mail.from.nickname=TP-LINK\u4E91\u670D\u52A1</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_36">36</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_37">37</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;turn&nbsp;on&nbsp;debug&nbsp;mode&nbsp;for&nbsp;debug&nbsp;mail&nbsp;server&nbsp;to&nbsp;set&nbsp;mail.debug=true</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_38">38</td><td nowrap="nowrap"><span class="diff_add">mail.debug.enabled=false</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_39">39</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_40">40</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;a&nbsp;url&nbsp;filled&nbsp;in&nbsp;the&nbsp;template&nbsp;for&nbsp;show&nbsp;logo&nbsp;image&nbsp;in&nbsp;the&nbsp;mail</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_41">41</td><td nowrap="nowrap"><span class="diff_add">mail.resources.logo.url=http://staticsrc.tplinkcloud.com.cn/mail/mail_logo.png</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_42">42</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_43">43</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;template</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_44">44</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;tempate&nbsp;update&nbsp;delay(seconds),&nbsp;means&nbsp;template&nbsp;cache&nbsp;expired&nbsp;time</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_45">45</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;set&nbsp;a&nbsp;long&nbsp;time&nbsp;when&nbsp;template&nbsp;file&nbsp;not&nbsp;updated&nbsp;frequently</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_46">46</td><td nowrap="nowrap"><span class="diff_add">template.update.delay.seconds=3600</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_47">47</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_48">48</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;template&nbsp;name</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_49">49</td><td nowrap="nowrap"><span class="diff_add">template.regVeriMail.name=regVeriMail.ftl</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_50">50</td><td nowrap="nowrap"><span class="diff_add">template.resetPwdVeriMail.name=resetPwdVeriMail.ftl</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_51">51</td><td nowrap="nowrap"><span class="diff_add">template.regVeriSMS.name=regVeriSMS.ftl</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_52">52</td><td nowrap="nowrap"><span class="diff_add">template.resetPwdVeriSMS.name=resetPwdVeriSMS.ftl</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_53">53</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_54">54</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;Thread&nbsp;Pool&nbsp;config</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_55">55</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;pool&nbsp;shutdown&nbsp;timeout&nbsp;(seconds)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_56">56</td><td nowrap="nowrap"><span class="diff_add">threadpool.shutdown.timeout=120</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_57">57</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_58">58</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;mail&nbsp;sender&nbsp;thread&nbsp;pool</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_59">59</td><td nowrap="nowrap"><span class="diff_add">threadpool.mail.core.size=5</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_60">60</td><td nowrap="nowrap"><span class="diff_add">threadpool.mail.max.size=20</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_61">61</td><td nowrap="nowrap"><span class="diff_add">threadpool.mail.queue.capacity=10000</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_62">62</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_63">63</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;sms&nbsp;sender&nbsp;thread&nbsp;pool</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_64">64</td><td nowrap="nowrap"><span class="diff_add">threadpool.sms.core.size=5</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_65">65</td><td nowrap="nowrap"><span class="diff_add">threadpool.sms.max.size=20</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_66">66</td><td nowrap="nowrap"><span class="diff_add">threadpool.sms.queue.capacity=10000</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_67">67</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_68">68</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;security</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_69">69</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;auth&nbsp;failure&nbsp;max&nbsp;times&nbsp;in&nbsp;the&nbsp;interval&nbsp;(minutes)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_70">70</td><td nowrap="nowrap"><span class="diff_add">auth.failure.interval=30</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_71">71</td><td nowrap="nowrap"><span class="diff_add">auth.failure.max.times=20</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_72">72</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;set&nbsp;the&nbsp;length&nbsp;of&nbsp;time&nbsp;the&nbsp;account&nbsp;is&nbsp;locked&nbsp;(minutes)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_73">73</td><td nowrap="nowrap"><span class="diff_add">auth.failure.lock.duration.minutes=120</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_74">74</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_75">75</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;Verify&nbsp;Code</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_76">76</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;verify&nbsp;code&nbsp;expired&nbsp;time(minutes)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_77">77</td><td nowrap="nowrap"><span class="diff_add">verify.code.register.exp.minutes=60</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_78">78</td><td nowrap="nowrap"><span class="diff_add">verify.code.reset.exp.minutes=60</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_79">79</td><td nowrap="nowrap"><span class="diff_add">verify.code.length=6</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_80">80</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;verify&nbsp;code&nbsp;will&nbsp;invalid&nbsp;when&nbsp;exceed&nbsp;the&nbsp;limit&nbsp;of&nbsp;input&nbsp;error&nbsp;times</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_81">81</td><td nowrap="nowrap"><span class="diff_add">verify.code.input.error.max.times=3</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_82">82</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_83">83</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;limit</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_84">84</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;limit&nbsp;for&nbsp;verify&nbsp;code&nbsp;request&nbsp;from&nbsp;device</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_85">85</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;verify&nbsp;code&nbsp;request&nbsp;max&nbsp;times&nbsp;in&nbsp;the&nbsp;interval&nbsp;(minutes)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_86">86</td><td nowrap="nowrap"><span class="diff_add">verify.code.request.interval=60</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_87">87</td><td nowrap="nowrap"><span class="diff_add">verify.code.request.max.times=10</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_88">88</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;set&nbsp;the&nbsp;length&nbsp;of&nbsp;time&nbsp;the&nbsp;device&nbsp;is&nbsp;locked&nbsp;(minutes)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_89">89</td><td nowrap="nowrap"><span class="diff_add">verify.code.request.lock.duration.minutes=1440</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_90">90</td><td nowrap="nowrap"><span class="diff_add">&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_91">91</td><td nowrap="nowrap"><span class="diff_add">##&nbsp;monitor</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_92">92</td><td nowrap="nowrap"><span class="diff_add">#&nbsp;default&nbsp;monitor&nbsp;window&nbsp;is&nbsp;300000s(5&nbsp;minutes)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to6_93">93</td><td nowrap="nowrap"><span class="diff_add">#stats.duration.millis=300000</span></td></tr>
+        </tbody>
+    </table>
+    <table class="diff" summary="Legends">
+        <tr> <th colspan="2"> Legends </th> </tr>
+        <tr> <td> <table border="" summary="Colors">
+                      <tr><th> Colors </th> </tr>
+                      <tr><td class="diff_add">&nbsp;Added&nbsp;</td></tr>
+                      <tr><td class="diff_chg">Changed</td> </tr>
+                      <tr><td class="diff_sub">Deleted</td> </tr>
+                  </table></td>
+             <td> <table border="" summary="Links">
+                      <tr><th colspan="2"> Links </th> </tr>
+                      <tr><td>(f)irst change</td> </tr>
+                      <tr><td>(n)ext change</td> </tr>
+                      <tr><td>(t)op</td> </tr>
+                  </table></td> </tr>
+    </table>
+</body>
+
+</html>

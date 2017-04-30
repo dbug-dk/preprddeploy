@@ -1,7 +1,8 @@
 from django.contrib import admin
-from basicservice.models import *
-# Register your models here.
 
-models = [BasicServiceDeployInfo, BasicServiceIps]
+# Register your models here.
+from models import *
+
+models = [ModuleConfTemplate, ModuleConf]
 for model in models:
     admin.site.register(model)

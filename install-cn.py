@@ -1,5 +1,5 @@
 #! coding=utf8
-# Filename    : install.py.py
+# Filename    : install-en.py.py
 # Description : 
 # Author      : dengken
 # History:
@@ -28,14 +28,17 @@ from module.models import ModuleInfo
 from preprddeploy.settings import ELB_MODULES, ACCOUNT_NAME
 
 regions = [
-    ['us-east-1', 1, 'use1', '美国区']
+    ['cn-north-1', 1, 'cnn1', '北京区']
 ]
 
 biz_modules = {
-    'dataAccessLayer': ['dal', 'crosssync', 'notification'],
-    'businessLayer': ['account_accountweb', 'appservice_pushservice', 'device', 'mail', 'mailvalidator', 'vaservice'],
-    'forwardingLayer': ['dispatcher', 'assembler'],
-    'accessLayer': ['appserver', 'appserverinternal', 'connector', 'ddns', 'eweb', 'ipcamera', 'sefcore', 'vaserver']
+    'dataAccessLayer': ['dal', 'crosssync', 'dalForFailover'],
+    'businessLayer': ['account', 'accountweb', 'device', 'appservice', 'pushservice',
+                      'vaservice', 'mail', 'mailvalidator', 'sms'],
+    'forwardingLayer': ['dispatcher', 'assembler', 'jmsservice', 'notification'],
+    'accessLayer': ['appserver', 'appserverinternal', 'connector', 'appconnector', 'sefcore',
+                    'ipcamera', 'webmanager', 'vaserver', 'ddns', 'devconnector', 'kafka2es',
+                    'eswatcher', 'eventloop', 'opDataReceiver', 'infoquery']
 }
 
 layer_order_map = {
@@ -44,8 +47,12 @@ layer_order_map = {
     'forwardingLayer': 3,
     'accessLayer': 4
 }
-STANDARD_MODULES = ['dal', 'crosssync', 'notification', 'account', 'appservice', 'pushservice', 'device', 'mail', 'mailvalidator', 'vaservice','dispatcher', 'assembler', 'connector', 'ddns', 'ipcamera', 'sefcore']
-TOMCAT_MODULES = ['accountweb', 'appserver', 'appserverinternal', 'vaserver', 'eweb']
+
+STANDARD_MODULES = ['dal', 'crosssync', 'account', 'device', 'appservice', 'pushservice', 'ddns', 'ipcamera',
+                    'dispatcher', 'assembler', 'connector', 'appconnector', 'mail', 'vaservice', 'sefcore',
+                    'mailvalidator', 'dalForFailover', 'jmsservice', 'sms', 'notification', 'devconnector',
+                    'kafka2es', 'eswatcher', 'eventloop', 'infoquery']
+TOMCAT_MODULES = ['accountweb', 'appserver', 'webmanager', 'oamanager', 'appserverinternal', 'vaserver', 'eweb']
 
 INSTANCE_TYPE = ['t2.small', 't2.micro', 't2.medium', 't2.large', 't2.xlarge', 't2.2xlarge', 'm1.small',
                  'm1.medium', 'm1.large', 'm1.xlarge', 'm3.medium', 'm3.large', 'm3.xlarge', 'm3.2xlarge', 'm4.large',
@@ -60,15 +67,21 @@ INSTANCE_TYPE = ['t2.small', 't2.micro', 't2.medium', 't2.large', 't2.xlarge', '
                  'd2.4xlarge', 'd2.8xlarge', 'f1.2xlarge', 'f1.16xlarge']
 
 basic_services = (
-    ('pushCassandra', 1, 'use1'),
-    ('cassandra', 1, 'use1'),
-    ('codis', 2, 'use1'),
-    ('mysql', 1, 'use1'),
-    ('redisClusterMaster', 1, 'use1'),
-    ('zookeeper', 1, 'use1'),
-    ('redis', 1, 'use1'),
-    ('rabbitmq', 1, 'use1'),
-    ('redisClusterSlave', 2, 'use1')
+    ('mysql', '1', 'cnn1'),
+    ('cassandra', '1', 'cnn1'),
+    ('pushCassandra', '1', 'cnn1'),
+    ('zookeeper', '1', 'cnn1'),
+    ('rabbitmq', '1', 'cnn1'),
+    ('factoryInfoCassandra', '1', 'cnn1'),
+    ('redisClusterWithFailoverMaster', '1', 'cnn1'),
+    ('redisClusterWithFailoverSlave', '2', 'cnn1'),
+    ('mongodb', '1', 'cnn1'),
+    ('kafka', '2', 'cnn1'),
+    ('redisClusterNoFailoverMaster', '1', 'cnn1'),
+    ('redisClusterNoFailoverSlave', '2', 'cnn1'),
+    ('logkafka', '2', 'cnn1'),
+    ('elasticsearch', '1', 'cnn1'),
+    ('branchMainDb', '1', 'cnn1')
 )
 
 
@@ -97,9 +110,7 @@ def scan_instances_and_save_module(region, username):
             instances = ec2api.find_instances(region, ['*-%s-*' % module])
             max_version = '1.0.0'
             count = 0
-            instance_name = None
             module_name = None
-            module_version = None
             for instance in instances:
                 instance_name = ec2api.get_instance_tag_name(instance)
                 module_name, module_version = ec2api.get_module_info(instance_name)
@@ -108,22 +119,21 @@ def scan_instances_and_save_module(region, username):
                     max_version = module_version
                 elif version_cmp(module_version, max_version) == 0:
                     count += 1
-            elb_names = ELB_MODULES.get(module_name)
             if count:
                 mi = ModuleInfo(module_name=module_name, current_version=max_version,
-                                instance_count=count + 1, elb_names=elb_names, user=user_obj, order=-1)
+                                instance_count=count + 1, user=user_obj, order=-1)
                 mi.save()
                 mi.regions.add(region_obj)
-        for service in module.split('_'):
-            if service in STANDARD_MODULES:
-                service_type = 'standard'
-            elif service in TOMCAT_MODULES:
-                service_type = 'tomcat'
-            else:
-                service_type = 'other'
-            biz_module = BizServiceLayer(module=mi, service_name=service, layer_name=layer, start_order=order,
-                                         service_type=service_type)
-            biz_module.save()
+                for service in module.split('_'):
+                    if service in STANDARD_MODULES:
+                        service_type = 'standard'
+                    elif service in TOMCAT_MODULES:
+                        service_type = 'tomcat'
+                    else:
+                        service_type = 'other'
+                    biz_module = BizServiceLayer(module=mi, service_name=service, layer_name=layer, start_order=order,
+                                                 service_type=service_type)
+                    biz_module.save()
 
 
 def version_cmp(x, y):
@@ -164,9 +174,9 @@ def save_aws_resource_can_not_scan(region):
 
 if __name__ == '__main__':
     print 'save region info...'
-    #save_regions()
+    save_regions()
     print 'save basic service...'
-    #save_basic()
-    region = 'us-east-1'
+    save_basic()
+    region = 'cn-north-1'
     scan_instances_and_save_module(region, 'root')
     save_aws_resource_can_not_scan(region)

@@ -22,7 +22,10 @@ logger = logging.getLogger('common')
 
 
 def get_instance_tag(ec2instance, tag_name):
-    for tag in ec2instance.tags:
+    tags = ec2instance.tags
+    if not tags:
+        return None
+    for tag in tags:
         if tag.get('Key') == tag_name:
             return tag.get('Value')
 

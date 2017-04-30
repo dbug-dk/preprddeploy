@@ -140,6 +140,7 @@ class LoadBalancerCreater(object):
                     elbclient = aws_session.client('elb')
                     loadbalancers = elbclient.describe_load_balancers().get('LoadBalancerDescriptions')
                     if loadbalancers:
+                        LoadbalancerInfo.objects.filter(region=RegionInfo.objects.get(region=region)).delete()
                         for lb in loadbalancers:
                             if lb['VPCId'] == DEFAULT_PREPRD_VPC[region][1]:
                                 LoadbalancerInfo.save_elb_info(lb, RegionInfo.objects.get(region=region))

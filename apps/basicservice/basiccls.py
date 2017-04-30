@@ -57,9 +57,8 @@ class BasicService(object):
         logger.info('pre work done.')
 
 
-class MysqlService(BasicService):
+class MysqlBaseService(BasicService):
     def __init__(self, region):
-        self.service_name = 'mysql'
         BasicService.__init__(self, region)
     
     def start_service(self):
@@ -69,7 +68,6 @@ class MysqlService(BasicService):
             2.check if service has started.
         """
         self.prework_before_start_service()
-        #time.sleep(60)
         if self.check_service():
             logger.info('mysql service started.')
             return {'ret': True}
@@ -88,6 +86,18 @@ class MysqlService(BasicService):
                 logger.error('mysql:%s service not running!' % ip)
                 return False
         return True
+
+
+class MysqlService(MysqlBaseService):
+    def __init__(self, region):
+        self.service_name = 'mysql'
+        MysqlBaseService.__init__(self, region)
+
+
+class BranchMainDbService(MysqlBaseService):
+    def __init__(self, region):
+        self.service_name = 'branchMainDb'
+        MysqlBaseService.__init__(self, region)
 
 
 class MongodbService(BasicService):
@@ -365,7 +375,7 @@ class CassandraBaseService(BasicService):
                 self.key_name
             )
             p = subprocess.Popen(kill_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
+            p.communicate()
             if p.poll() == 0:
                 logging.info('kill cassandra process success')
                 time.sleep(10)

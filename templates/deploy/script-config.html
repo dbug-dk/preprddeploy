@@ -1,0 +1,27 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <table class="table table-bordered" id="{{ script_name }}-{{ script_conf_name|cut:'.' }}">
+            <thead>
+                <tr>
+                    <th colspan="2">
+                        <button class="btn btn-info" onclick="modifyConf('{{ script_conf_name }}')">修改配置</button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for section, conf in conf_contents.items %}
+                <tr>
+                    <th colspan="2"><h4><mark>[{{ section }}]</mark></h4></th>
+                </tr>
+                    {% for key, value in conf.items%}
+                    <tr>
+                        <th width="20%">{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- /.panel-body -->
+</div>
