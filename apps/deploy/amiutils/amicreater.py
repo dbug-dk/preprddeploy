@@ -17,6 +17,7 @@ from preprddeploy.settings import HOME_PATH, KEY_PATH
 logger = logging.getLogger('common')
 PWD = os.path.split(os.path.realpath(__file__))[0]
 
+
 def get_update_instances(region, update_module_info, current_username):
     """
     choose instances to create ami base on update-module list

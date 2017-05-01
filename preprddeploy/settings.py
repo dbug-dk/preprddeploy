@@ -280,6 +280,16 @@ AUTO_DEPLOY_PROGRESS = {
         )
     },
 
+    'ami_and_finish_work': {
+        'order': 4,
+        'label': u'ami制作与环境停止',
+        'child_progress': (
+            ('deploy.deployer.Deployer', u'替换生产配置'),
+            ('deploy.batchamicreater.BatchAmiCreater', u'制作AMI'),
+            ('deploy.deployer.Deployer', u'替换预生产配置'),
+            ('autodeploy.envstopper.EnvStopper', u'停止环境')
+        )
+    }
 }
 
 # ec2 check
