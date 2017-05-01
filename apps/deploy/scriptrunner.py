@@ -40,7 +40,7 @@ class ScriptRunner(object):
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(0.1)  # forget why i sleep here, if not sure, don't modify this
         rq = RedisQueue('script_serviceDeploy_%s_%s' % (region, username))
-        rq.delete_queue()
+        rq.delete_queue()  # todo: delete key only
         stdout, stderr = p.communicate()
         ret_code = p.poll()
         if not ret_code:

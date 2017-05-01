@@ -10,6 +10,7 @@ from django.shortcuts import render
 # Create your views here.
 
 from common.models import RegionInfo, AwsAccount, AwsResource
+from launcher.batchlauncher import Ec2BatchLauncher
 from launcher.opsetutils import check_params_set, run_instances, add_ec2_tags, add_volume_tags, get_tags_by_module, \
     get_opset_dict
 from launcher.resourcehandler import AwsResourceHandler
@@ -234,7 +235,7 @@ def add_instance_tags(request):
 
     try:
         tags = get_tags_by_module(ec2optionset.module, region)
-        result = add_ec2_tags(ec2_resource, tags, instance_ids, region)
+        result = add_ec2_tags(ec2_resource, tags, instance_ids)
     except:
         error_msg = 'add instance tags failed, error msg:\n%s' % traceback.format_exc()
         logger.error(error_msg)
@@ -246,7 +247,7 @@ def add_instance_tags(request):
     logger.info('all instance tags add success')
 
     try:
-        add_volume_tags(ec2_resource, instance_ids)
+        result = add_volume_tags(ec2_resource, instance_ids)
     except:
         error_msg = 'add ebs tags failed, error msg:\n%s' % traceback.format_exc()
         logger.error(error_msg)
@@ -258,16 +259,17 @@ def get_all_update_modules(request):
     if 'region' in request.GET:
         region_name = request.GET.get('region')
         region_obj = RegionInfo.objects.get(region=region_name)
-        modules = region_obj.moduleinfo_set.filter(~Q(update_version=u'')&~Q(update_version=None))
-        print modules
-        # modules = ModuleInfo.objects.filter(~Q(update_version=u''), region=region_obj)
-        module_infos = []
-        for module in modules:
-            module_name = module.module_name
-            current_version = module.current_version
-            update_version = module.update_version
-            module_infos.append([module_name, current_version, update_version])
-        return render(request, 'launcher/choose-modules.html', {'module_infos': module_infos})
+        try:
+            modules = region_obj.moduleinfo_set.filter(~Q(update_version=u'') & ~Q(update_version=None))
+            module_infos = []
+            for module in modules:
+                module_name = module.module_name
+                current_version = module.current_version
+                update_version = module.update_version
+                module_infos.append([module_name, current_version, update_version])
+            return render(request, 'launcher/choose-modules.html', {'module_infos': module_infos})
+        except:
+            return HttpResponse('get all update module info failed:\n%s' % traceback.format_exc())
     else:
         return HttpResponse('bad request.', status=400)
 

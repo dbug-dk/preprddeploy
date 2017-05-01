@@ -261,7 +261,25 @@ AUTO_DEPLOY_PROGRESS = {
             ('basicservice.servicestarter.BasicServiceStarter', u'启动基础服务'),
             ('bizmodule.bizstarter.BizInstanceStarter', u'启动旧版本业务模块')
         )
-    }
+    },
+
+    'deploy_first_round': {
+        'order': 2,
+        'label': u'第一轮新服务部署',
+        'child_progress': (
+            ('launcher.batchlauncher.Ec2BatchLauncher', u'批量创建新版本EC2实例'),
+            ('deploy.deployer.Deployer', u'部署新版本服务')
+        )
+    },
+
+    'deploy_other_round': {
+        'order': 3,
+        'label': u'第n轮新服务部署',
+        'child_progress': (
+            ('deploy.deployer.Deployer', u'部署新版本服务')
+        )
+    },
+
 }
 
 # ec2 check

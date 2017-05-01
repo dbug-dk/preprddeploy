@@ -20,20 +20,20 @@ logger = logging.getLogger('deploy')
 
 
 class ProgressStarter(object):
-    def __init__(self, progress_name, result_worker_cls):
+    def __init__(self, progress_name, result_worker_cls, **args):
         self.progress_name = progress_name
         self.task_queue = JoinableQueue()
         self.result_queue = JoinableQueue() 
-        self.add_tasks()
+        self.add_tasks(**args)
         self.result_worker_cls = result_worker_cls
 
-    def add_tasks(self):
+    def add_tasks(self, **args):
         child_progresses = AUTO_DEPLOY_PROGRESS[self.progress_name]['child_progress']
         logger.debug("progress's tasks classes: %s" % [task[0] for task in child_progresses])
         for child_progress in child_progresses:
             process_class_path = child_progress[0]
             cls = locate(process_class_path)
-            self.task_queue.put(cls())
+            self.task_queue.put(cls(**args))
         self.task_queue.put(None)
 
     def start(self):

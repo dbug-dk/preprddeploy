@@ -76,6 +76,7 @@ def run_instances(ec2res, elbclient, optionset, count):
     Run 'count' number of instances use settings defined in 'optionset'.
     Args:
         ec2res: boto3 ec2 resource
+        elbclient: boto3 elb client
         optionset: Ec2OptionSet obj
         count: instance number to launcher
     Returns:
@@ -153,7 +154,7 @@ def _get_instances_max_number(prefix, instances):
     return max_number
 
 
-def add_ec2_tags(ec2res, tags, instance_ids, region):
+def add_ec2_tags(ec2res, tags, instance_ids):
     ret = {'success': [], 'failed': []}
     prefix = tags['Name']
     # list instances with the same prefix:
@@ -232,7 +233,6 @@ def add_volume_tags(ec2res, instance_ids):
             ret['failed'].append(instance_id)
     if ret['failed']:
         raise Exception('add ebs tags failed: %s' % ', '.join(ret['failed']))
-    return ret
 
 
 def get_opset_dict(ec2_opset_obj):
