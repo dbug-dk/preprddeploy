@@ -217,7 +217,7 @@ function startEnv(){
     var startTime = $('#datetimepicker').val();
     var upgradeInfoJson = ace.edit("aceEditorNew").getValue();
     var startEnvReq = $.ajax({
-        url: 'start_env',
+        url: 'start_env_pre',
         type: "POST",
         dateType: "json",
         data: {

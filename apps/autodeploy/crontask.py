@@ -63,3 +63,9 @@ def disable_task(name):
 @app.task
 def delete_task():
     return celery_models.PeriodicTask.objects.filter(expires__lt=timezone.now()).delete()
+
+
+@app.task(bind=True)
+def add(x, y):
+    logger.info('%s + %s = %s' % (x, y, x+y))
+    return x + y

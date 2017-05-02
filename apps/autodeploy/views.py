@@ -45,7 +45,7 @@ def auto_deploy_home(request):
 
 
 @csrf_exempt
-def start_env(request):
+def start_env_pre(request):
     auto_deploy_history = AutoDeployHistory.objects.filter(Q(is_deploy_finish=False) | Q(is_result_finish=False))
     if auto_deploy_history:
         return HttpResponse('%s autodeploy process is running: %s' % (
@@ -87,7 +87,7 @@ def start_env(request):
         # Thread(target=mailSender.send_mail_when_new_module,
         #        args=(new_modules, managers, request.META['HTTP_HOST']))
     logger.info('all pre work done, add crontab task to start env')
-    if create_task('start_env_at_%s' % start_time, add_start_env_crontab, {
+    if create_task('start_env_at_%s' % start_time, 'autodeploy.tasks.start_env_request', {
         'upgrade_version': upgrade_version,
         'managers': managers
     }, datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M')):
@@ -95,8 +95,11 @@ def start_env(request):
     return HttpResponse(json.dumps({'status': 500, 'info': 'add cronjob failed'}))
 
 
-@app.task
-def add_start_env_crontab(upgrade_version, managers):
+def start_env(request):
+    upgrade_version = request.GET.get('upgrade_version')
+    managers = request.GET.get('managers')
+    if not upgrade_version or not managers:
+        return HttpResponse('bad request!', status=400)
     AutoDeployHistory.add_new_deploy_history(upgrade_version, managers, 'start_env')
     result_worker = __get_result_worker('start_env')
     progress = processmgr.ProgressStarter('start_env', result_worker)
