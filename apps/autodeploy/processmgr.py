@@ -33,6 +33,12 @@ class ProgressStarter(object):
         for child_progress in child_progresses:
             process_class_path = child_progress[0]
             cls = locate(process_class_path)
+            try:
+                process_args = child_progress[2]
+                if isinstance(process_args, dict):
+                    args.update(process_args)
+            except IndexError:
+                logger.info('not found args for progress: %s, use ProgressStarter args' % process_class_path)
             self.task_queue.put(cls(**args))
         self.task_queue.put(None)
 

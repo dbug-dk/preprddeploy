@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="dataSourceStorage">
   <data-source name="MySQL - preprddeploy@localhost" uuid="97f154e6-4409-4c9a-9531-639ca02dd780">
-    <database-info product="MySQL" version="5.1.50-community" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.35 ( Revision: 5fb9c5849535c13917c2cf9baaece6ef9693ef27 )">
-      <extra-name-characters>#@</extra-name-characters>
-      <identifier-quote-string>`</identifier-quote-string>
-    </database-info>
-    <case-sensitivity plain-identifiers="lower" quoted-identifiers="lower"/>
+    <database-info product="" version="" jdbc-version="" driver-name="" driver-version=""/>
     <database-model serializer="dbm" rdbms="MYSQL" format-version="2.5">
       <schema id="1" name="preprddeploy"/>
       <table id="2" parent="1" name="auth_group"/>
@@ -598,7 +594,7 @@ regioninfo_id</columns>
       </foreign-key>
       <foreign-key id="167" parent="15" name="common_awsresource_parent_id_79ed1f01_fk_common_awsresource_id">
         <columns>parent_id</columns>
-        <ref-key>PRIMARY</ref-key>
+        <ref-key>~.auth_group.PRIMARY</ref-key>
         <cascade-update-rule>restrict</cascade-update-rule>
         <cascade-delete-rule>restrict</cascade-delete-rule>
       </foreign-key>

@@ -85,7 +85,7 @@ class EnvStopper(object):
                 instance.stop()
 
     def stop_basic_instances(self, region):
-        self.stop_basic_results.update({region: []})
+        self.stop_basic_results.update({region: {'success': [], 'failed': []}})
         service_order_dict = BasicServiceStarter.get_service_order(region)
         total_round = len(service_order_dict)
         for round_num in range(total_round, 0, -1):

@@ -1,0 +1,23 @@
+{% if upgradeVersions %}
+<div class="form-group">
+    {% for upgradeVersion in upgradeVersions %}
+	    {% if forloop.first %}
+	    <div class="radio">
+	        <label>
+	            <input type="radio" name="optionsRadios" id="options{{forloop.counter}}" value="{{upgradeVersion}}" checked="">{{upgradeVersion}}
+	        </label>
+	    </div>
+	    {% else %}
+	    <div class="radio">
+	        <label>
+	            <input type="radio" name="optionsRadios" id="options{{forloop.counter}}" value="{{upgradeVersion}}">{{upgradeVersion}}
+	        </label>
+	    </div>
+	    {% endif %}
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-danger">
+    <h4>指定s3桶中未发现任何更新信息文件</h4>
+</div>
+{% endif %}

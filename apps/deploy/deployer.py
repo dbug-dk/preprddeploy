@@ -26,6 +26,7 @@ class Deployer(object):
     def __init__(self, **args):
         self.username = args['username']
         self.method = args['method']
+        self.round_num = 1
         if self.method == 'deploy':
             self.round_num = args['round_num']
         self.region_order_dict = RegionInfo.get_all_regions_group_by_order()
@@ -41,7 +42,7 @@ class Deployer(object):
             try:
                 self.stop_old_module_instances()
             except:
-                return {'ret': False, 'msg': u'停止旧服务主机过程中出错，部署停止'}
+                return {'ret': False, 'msg': u'停止旧服务主机过程中出错，部署停止,异常信息:\n%s' % traceback.format_exc()}
             logger.info('old version instances are all stopped in all regions')
         total_region_round = len(self.region_order_dict)
         for region_round in range(1, total_region_round + 1):
@@ -68,7 +69,7 @@ class Deployer(object):
         }.get(self.method)}
 
     def stop_old_module_instances(self):
-        for _, regions in self.region_order_dict:
+        for _, regions in self.region_order_dict.items():
             for region_name in regions:
                 region_obj = RegionInfo.objects.get(region=region_name)
                 modules = region_obj.moduleinfo_set.filter(order=self.round_num - 1)
@@ -93,7 +94,10 @@ class Deployer(object):
 
     def deploy_services_in_region(self, region_name):
         region_obj = RegionInfo.objects.get(region=region_name)
-        modules = region_obj.moduleinfo_set.filter(order=self.round_num)
+        if self.method == 'deploy':
+            modules = region_obj.moduleinfo_set.filter(order=self.round_num)
+        else:
+            modules = region_obj.moduleinfo_set.exclude(order=-1)
         if not modules.count():
             error_msg = 'no update module found in region: %s' % region_name
             logger.error(error_msg)

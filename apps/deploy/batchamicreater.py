@@ -4,13 +4,14 @@
 # Author      : dengken
 # History:
 #    1.  , dengken, first create
+import datetime
 import json
 import logging
 import os
 import traceback
 
 import threadpool
-from django.db.models import Q, datetime
+from django.db.models import Q
 
 from common.models import RegionInfo, AwsAccount
 from deploy.amiutils.amicreater import get_update_instances, delete_logs, create_business_amis, add_auth
@@ -36,7 +37,10 @@ class BatchAmiCreater(object):
         if not create_ami_result['ret']:
             return {'ret': False, 'msg': create_ami_result['msg']}
         logger.info('all ami create success in regions: %s' % self.regions)
-        return {'ret': True, 'msg': u'所有区域[%s]ami制作完成' % ','.join(self.regions)}
+        return {'ret': True, 'msg': u'所有区域[%s]ami制作完成: %s' % (
+            ','.join(self.regions),
+            create_ami_result['msg']
+        )}
 
     def __check_thread_success(self):
         for region in self.results:
@@ -50,7 +54,7 @@ class BatchAmiCreater(object):
         module_version_dict = {}
         for module in modules:
             module_version_dict.update({module.module_name: module.update_version})
-        ret_dict = get_update_instances(region_name, module_version_dict, self.username)
+        ret_dict = get_update_instances(region_name, module_version_dict.copy(), self.username)
         if not ret_dict['ret']:
             self.results.update({'region': {'failed': ret_dict['msg']}})
             return

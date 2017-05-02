@@ -49,6 +49,7 @@ class UpgradeInfoParser(object):
         module_infos = self.upgrade_content['modules']
         new_modules = {}
         error_modules = {}
+        update_modules = []
         for module_name, module_info in module_infos.items():
             params_dict = {}
             try:
@@ -72,6 +73,8 @@ class UpgradeInfoParser(object):
                 logger.error(error_msg)
                 error_modules.update({module_name: error_msg})
                 continue
+            if params_dict['current_version'] != params_dict['update_version']:
+                update_modules.append((module_name, params_dict['current_version'], params_dict['update_version']))
             try:
                 user = User.objects.get(username=author)
             except User.DoesNotExist:
@@ -92,7 +95,7 @@ class UpgradeInfoParser(object):
                     error_msg = 'update module info failed. \n%s' % traceback.format_exc()
                     logger.error(error_msg)
                     error_modules.update({module_name: error_msg})
-        return new_modules, error_modules
+        return new_modules, error_modules, update_modules
 
     @staticmethod
     def __create_new_module(params_dict):

@@ -238,7 +238,7 @@ TOPO_MODULES = ['nat', 'ci_test', 'dns']
 # DEVOPS_TOOL = ['logtransfer', 'openfalcon', 'logcatchagent', 'healthcheck']
 
 ACCOUNT_NAME = 'beta'
-HOME_PATH = 'F:\\'
+HOME_PATH = '/home/ubuntu'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 DEVOPS_DIR = os.path.join(HOME_PATH, 'cloud-ops')
 KEY_PATH = os.path.join(HOME_PATH, 'pem')
@@ -284,9 +284,9 @@ AUTO_DEPLOY_PROGRESS = {
         'order': 4,
         'label': u'ami制作与环境停止',
         'child_progress': (
-            ('deploy.deployer.Deployer', u'替换生产配置'),
+            ('deploy.deployer.Deployer', u'替换生产配置', {'method': 'change'}),
             ('deploy.batchamicreater.BatchAmiCreater', u'制作AMI'),
-            ('deploy.deployer.Deployer', u'替换预生产配置'),
+            ('deploy.deployer.Deployer', u'替换预生产配置', {'method': 'changeback'}),
             ('autodeploy.envstopper.EnvStopper', u'停止环境')
         )
     }
