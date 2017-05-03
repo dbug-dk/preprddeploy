@@ -144,10 +144,19 @@ class Deployer(object):
         module_name = module_obj.module_name
         module_version = module_obj.update_version
         service_deploy_script = ServiceDeployScript()
-        instance_ips, key_file_path = service_deploy_script.get_deploy_instances('%s-%s' % (
-            module_name,
-            module_version
-        ), region_name)
+        current_time = time.time()
+        while 1:
+            try:
+                instance_ips, key_file_path = service_deploy_script.get_deploy_instances('%s-%s' % (
+                    module_name,
+                    module_version
+                ), region_name)
+                break
+            except:
+                if time.time() - current_time > 180:
+                    error_msg = 'no running instances for module: %s-%s in 180s' % (module_name, module_version)
+                    logger.error(error_msg)
+                    raise Exception(error_msg)
         self.wait_instances_can_be_deploy(instance_ips, key_file_path)
         command = service_deploy_script.pre_work(module_name, module_version, region_name, self.method, self.username)
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

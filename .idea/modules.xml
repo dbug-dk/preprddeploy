@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/preprddeploy.iml" filepath="$PROJECT_DIR$/.idea/preprddeploy.iml" />
+      <module fileurl="file://F:/eclipsespace/serviceDeploy/.idea/serviceDeploy.iml" filepath="F:/eclipsespace/serviceDeploy/.idea/serviceDeploy.iml" />
       <module fileurl="file://$USER_HOME$/PycharmProjects/testdjango/.idea/testdjango.iml" filepath="$USER_HOME$/PycharmProjects/testdjango/.idea/testdjango.iml" />
     </modules>
   </component>

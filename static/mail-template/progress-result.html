@@ -1,0 +1,175 @@
+<!DOCTYPE html><html><head lang="en">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>自动更新进程结果</title>
+    </head>
+    <body>
+        <p class="MsoNormal">
+            <span style="font-family:Microsoft YaHei;font-size:12pt; color:#333333">
+                你好，
+            </span>
+        </p>
+        <p class="MsoNormal">
+            <span style="font-family:Microsoft YaHei;font-size:12pt; color:#333333">
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ progress_name }}执行结果如下：<br>
+            </span>
+        </p>
+        <table class="MsoNormalTable" style="border-collapse:collapse" cellspacing="0" cellpadding="0" border="0">
+            <tbody>
+                <tr>
+                    <td colspan="2"
+                        style="border:solid #666666 1.0pt; background:white;padding:6.0pt 6.0pt 6.0pt 6.0pt ; text-align:center;">
+                        <p class="MsoNormal">
+                            <span style="font-size:14pt; font-family:Microsoft YaHei; color:#333333">
+                                <b>后台进程详细信息</b>
+                            </span>
+                            <span style="font-size:14pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333"
+                                  lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-size:12pt;font-family:Microsoft YaHei; color:#333333">
+                                <b>大版本号</b>
+                            </span>
+                            <span style="font-size:12pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333"
+                                  lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                                &nbsp;{{ upgrade_version }}<br>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-size:12pt;font-family:Microsoft YaHei; color:#333333">
+                                <b>进程名称</b>
+                            </span>
+                            <span style="font-size:12pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333"
+                                  lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                                &nbsp;{{ progress_name }}<br>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-size:12pt;font-family:Microsoft YaHei; color:#333333">
+                                <b>进程执行结果</b>
+                            </span>
+                            <span style="font-size:12pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333" lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                            &nbsp;{% if is_success %}成功{% else %}失败{% endif %}<br>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt; color:#333333">
+                                <b>开始时间</b>
+                            </span>
+                            <span style="font-size:10pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333" lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                            &nbsp;{{ start_time }}<br>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt; color:#333333">
+                                <b>结束时间</b>
+                            </span>
+                            <span style="font-size:10pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333" lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                            &nbsp;{{ end_time }}<br>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt; color:#333333">
+                                <b>持续时间</b>
+                            </span>
+                            <span style="font-size:10pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333" lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                            &nbsp;{{ duration }}秒<br>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:solid #666666 1.0pt; border-top:none; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt; color:#333333">
+                                <b>输出信息</b>
+                            </span>
+                            <span style="font-size:10pt; font-family:&quot;Verdana&quot;,&quot;sans-serif&quot;; color:#333333" lang="EN-US">
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-top:none; border-left:none; border-bottom:solid #666666 1.0pt;
+                               border-right:solid #666666 1.0pt; background:white; padding:6.0pt 6.0pt 6.0pt 6.0pt">
+                        <p class="MsoNormal">
+                            <span style="font-family:Microsoft YaHei;font-size:12pt;color:#333333" lang="EN-US">
+                                <pre style="font-family:Microsoft YaHei;">{{ log_content }}</pre>
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="MsoNormal">
+            <span lang="EN-US">
+                &nbsp;
+            </span>
+        </p>
+        <hr style="HEIGHT: 1px; WIDTH: 210px" align="left" color="#b5c4df" size="1">
+    </body>
+</html>

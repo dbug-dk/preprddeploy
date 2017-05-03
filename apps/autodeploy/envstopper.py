@@ -20,7 +20,7 @@ logger = logging.getLogger('deploy')
 
 
 class EnvStopper(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.stop_basic_results = {}
         self.results = {}
 

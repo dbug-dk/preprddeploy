@@ -15,7 +15,7 @@ import re
 import os
 import logging
 
-from fabric.context_managers import settings
+from fabric.context_managers import settings, hide
 from fabric.api import env, run
 
 from bizmodule.models import BizServiceLayer
@@ -85,7 +85,7 @@ class Ec2Checker(object):
             file_path (string): file path
         """
         cmd = "test -f " + file_path
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             result = run(cmd)
         if result.return_code == 0:
             return True
@@ -100,7 +100,7 @@ class Ec2Checker(object):
             file_path (string): file to check
         """
         cmd = "grep '%s' %s" % (line, file_path)
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             result = run(cmd)
         # grep exits 0 if a line is selected, 1 if no lines were selected:
         if result.return_code == 0:
@@ -135,7 +135,7 @@ class Ec2Checker(object):
             module_name (string): python module name
         """
         cmd = "python -c \"import %s\" " % (module_name,)
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             result = run(cmd)
         # if import is not successful, python will exit error code:
         if result.return_code == 0:
@@ -146,7 +146,7 @@ class Ec2Checker(object):
     def check_nofile():
         """check if nofile is set to 1048576"""
         cmd = 'grep 1048576 /etc/security/limits.conf | grep nofile'
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             res = run(cmd)
         if res.return_code != 0:
             return False
@@ -165,7 +165,7 @@ class Ec2Checker(object):
     def check_port_range():
         """check if ipv4 tcp port range is 1024 ~ 65535"""
         cmd = "grep '^net.ipv4.ip_local_port_range = 1024 65535' /etc/sysctl.conf"
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             res = run(cmd)
         return res.return_code == 0
 
@@ -186,7 +186,7 @@ class Ec2Checker(object):
         }
         for check_item in check_list:
             cmd = 'aws configure get %s' % check_item
-            with settings(warn_only=True):
+            with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
                 res = run(cmd)
                 if res != check_list[check_item]:
                     result[check_item] = False
@@ -200,7 +200,7 @@ class Ec2Checker(object):
             java_path (string): java path
         """
         cmd = 'echo $PATH|grep %s' % java_path
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             rec = run(cmd)
         if rec.return_code == 0:
             return True
@@ -210,7 +210,7 @@ class Ec2Checker(object):
     def check_nofile_autostart():
         """check if /etc/rc.local contains ulimit -SHn 1048576"""
         cmd = 'grep "ulimit -SHn 1048576" /etc/rc.local |wc -l'
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             rec = run(cmd)
         if rec.return_code == 0 and rec == '1':
             return True
@@ -220,7 +220,7 @@ class Ec2Checker(object):
     def check_monitor_autostart():
         """check if /etc/rc.local contains sudo -u ubuntu /home/ubuntu/cloud-ops/openfalcon/agent/control start"""
         cmd = 'grep "sudo -u ubuntu /home/ubuntu/cloud-ops/openfalcon/agent/control start" /etc/rc.local|wc -l'
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             rec = run(cmd)
         if rec.return_code == 0 and rec == '1':
             return True
@@ -233,7 +233,8 @@ class Ec2Checker(object):
             module (string): module name
         """
         # init check results:
-        results_file = {}
+        # check file will occur 'ValueError: I/O operation on closed file', decomment this after solve this problem
+        # results_file = {}
         results_pac = {}
         results_py = {}
         results_sysconf = {}
@@ -241,9 +242,9 @@ class Ec2Checker(object):
 
         # check files presence. 
         # list of files is in configuration's "settings/FILES":
-        for file_path in FILES:
-            result_file = self.check_file_presence(file_path)
-            results_file.update({file_path: result_file})
+        # for file_path in FILES:
+        #     result_file = self.check_file_presence(file_path)
+        #     results_file.update({file_path: result_file})
         # check package installation:
         # list of packages is in configuration's "settings/PACKAGES":
         for package in PACKAGES:
@@ -276,7 +277,7 @@ class Ec2Checker(object):
         )
         # update check results:
         results = {
-            'files': results_file,
+            # 'files': results_file,
             'packages': results_pac,
             'python_modules': results_py,
             'system configs': results_sysconf,
@@ -297,7 +298,7 @@ class Ec2Checker(object):
         """
         logging.debug("comparing %s & %s" % (fpath1, fpath2))
         cmd = "diff '%s' '%s'" % (fpath1, fpath2)
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             result = run(cmd)
         return result.return_code == 0
 
@@ -311,7 +312,7 @@ class Ec2Checker(object):
             'log_service_start.sh': "test -f /home/%s/log_service_start.sh" % (env.user,)
         }
         result_dict = {}
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             for check_name in check_items:
                 cmd = check_items[check_name]
                 result = run(cmd)
@@ -332,7 +333,7 @@ class Ec2Checker(object):
     def check_crontab(cronjob):
         logger.debug('check if crontab job existed : %s' % cronjob)
         cmd = "crontab -l|grep -v '^#' |grep -F '%s'|wc -l" % cronjob
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             result = run(cmd)
         if result.return_code == 0 and result == '1':
             return True
@@ -381,7 +382,7 @@ class Ec2Checker(object):
         ]
         # check service auto start
         # grep pattern:
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             for pattern in patterns:
                 cmd = "grep -E '%s' /etc/rc.local|wc -l" % pattern
                 r = run(cmd)
@@ -431,7 +432,7 @@ class Ec2Checker(object):
                 os.path.dirname(self.java_path)
             )
         ]
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             for pattern in patterns:
                 cmd = "grep -E '%s' /etc/rc.local|wc -l" % pattern
                 r = run(cmd)
@@ -508,7 +509,7 @@ class Ec2Checker(object):
             module_path (string): module dir. eg: /home/ubuntu/cloud-appserver/
         """
         cmd = "grep docBase %s/conf/server.xml" % tomcat_path
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             rec = run(cmd)
         if rec.return_code != 0:
             return False
@@ -529,7 +530,7 @@ class Ec2Checker(object):
             tomcat_path (string): tomcat path
         """
         cmd = 'ls %s/bin|grep .sh' % tomcat_path
-        with settings(warn_only=True):
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
             rec = run(cmd)
         if rec.return_code != 0:
             return False

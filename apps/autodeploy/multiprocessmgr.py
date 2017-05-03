@@ -11,6 +11,7 @@ from multiprocessing import Process
 import logging
 
 from autodeploy.models import AutoDeployHistory
+from autodeploy.tasks import send_progress_result
 
 logger = logging.getLogger('deploy')
 
@@ -90,6 +91,7 @@ class ResultWorker(Process):
                 logger.info('finish deal with deploy result: %s' % result)
                 self.resultQueue.task_done()
         AutoDeployHistory.update_deploy_history(result_pid=0, is_result_finish=True)
+        send_progress_result.delay()
 
     def deal_result(self, result):
         """
@@ -97,14 +99,5 @@ class ResultWorker(Process):
         Args:
             result (object): the result get from result queue.
         """
-        pass
-
-
-class StartEnvResultWorker(ResultWorker):
-    def __init__(self, result_queue):
-        ResultWorker.__init__(self, result_queue)
-
-    def deal_result(self, result):
-	logger.info('deal result by StartEnvResultWorker')
+        logger.info('deal result by StartEnvResultWorker')
         AutoDeployHistory.update_log_content(result)
-

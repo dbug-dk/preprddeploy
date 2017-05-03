@@ -15,7 +15,7 @@
             </div>
             <div class="panel-body">
                 <button class="btn btn-primary" onclick="showChooseProgress()">开始更新</button>
-                <button class="btn btn-primary">查看进度</button>
+                <button class="btn btn-primary" onclick="showCurrentProgress()">查看进度</button>
                 <table class='table table-striped table-hover'>
                     <thead>
                         <th>#</th>
@@ -90,7 +90,7 @@
                             <div class="form-group">
                                 <label class="col-md-2 control-label">开始时间</label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" id="datetimepicker">
+                                    <input type="text" class="form-control" id="datetimepicker" value="">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -177,6 +177,7 @@ function initDatetimePicker(){
     $('#datetimepicker').datetimepicker({
         language: 'zh-CN',
         weekStart: 1,
+        startDate: new Date(),
         endDate: myDate,
         daysOfWeekDisabled: [0, 1, 6],
         autoclose: 1,
@@ -219,7 +220,7 @@ function startEnv(){
     var startEnvReq = $.ajax({
         url: 'start_env_pre',
         type: "POST",
-        dateType: "json",
+        dataType: "json",
         data: {
             'upgrade_infos': upgradeInfoJson,
             'start_time': startTime
@@ -229,8 +230,85 @@ function startEnv(){
         alertAjaxError(request)
     });
     startEnvReq.done(function(data){
+        var status = data.status;
+        if (status != 200){
+            alertMessage('status: ' + data.status + ', msg: ' + data.info)
+        }
+        else{
+            alertMessage('status: 200')
+        }
+    })
+}
+
+function deployFirstRound(){
+    var username = $('#inputFirstDeployUsername').val();
+    var deployFirstRoundReq = $.ajax({
+        url: 'deploy_first_round',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            'username': username
+        }
+    });
+    deployFirstRoundReq.fail(function(req){
+        alertAjaxError(req)
+    });
+    deployFirstRoundReq.done(function(data){
         alertMessage('status: ' + data.status)
     })
+}
+
+function deployOtherRound(){
+    var username = $('#inputDeployUsername').val();
+    var roundNum = $('#inputRoundNum').val();
+    var deployOtherRoundReq = $.ajax({
+        url: 'deploy_other_round',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            'username': username,
+            'round_num': roundNum
+        }
+    });
+    deployOtherRoundReq.fail(function(req){
+        alertAjaxError(req)
+    });
+    deployOtherRoundReq.done(function(data){
+        alertMessage('status: ' + data.status)
+    })
+}
+
+function amiAndStopEnv(){
+    var username = $('#inputAmiUsername').val();
+    var finalWorkReq = $.ajax({
+        url: 'ami_and_stop_env',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            'username': username
+        }
+    });
+    finalWorkReq.fail(function(req){
+        alertAjaxError(req)
+    });
+    finalWorkReq.done(function(data){
+        alertMessage('status: ' + data.status)
+    })
+}
+
+function showCurrentProgress(){
+    var getProgressReq = $.ajax({
+        url: 'get_status',
+        type: 'GET',
+        dataType: 'json'
+    });
+    getProgressReq.fail(function(req){
+        alertAjaxError(req)
+    });
+    getProgressReq.done(function(data){
+        alertMessage(data)
+    })
+
 }
 </script>
 {% endblock %}

@@ -297,3 +297,13 @@ JAVA_PATH = "/usr/local/jdk1.7.0_60/bin"
 FILES = ["/usr/local/jdk1.7.0_60/bin/java"]
 PYTHON_MODULES = ["awscli", "boto", "fabric", "psutil"]
 PACKAGES = ['gcc', 'make', 'mysql-client', 'lrzsz', 'zip', 'ntp', 'python-pip']
+
+# mail conf
+EMAIL_BACKEND = 'django_ses.SESBackend'
+AWS_ACCESS_KEY_ID = 'ACCESS KEY ID'
+AWS_SECRET_ACCESS_KEY = 'SECRET KEY'
+AWS_SES_AUTO_THROTTLE = None
+SERVER_EMAIL = 'SES VALIDATED MAIL'
+MAIL_DOMAIN = 'company mail postfix'
+MAIL_SUBJECT_PREFIX = u'[Pre-Prd更新]'
+MAIL_TEMPLATE_DIR = 'static/mail-template'

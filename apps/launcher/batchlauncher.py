@@ -20,7 +20,7 @@ logger = logging.getLogger('deploy')
 
 
 class Ec2BatchLauncher(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.success_modules = {}
         self.failed_modules = {}
 

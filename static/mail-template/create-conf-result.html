@@ -1,0 +1,50 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">您好: <br>
+    &nbsp;&nbsp;下表是本次Pre-PRD更新所有更新模块配置文件生成结果<br>
+        {% if failed_dict %}
+        <caption align="top">存在模块生成配置失败，请确认修改后，重新发起更新</caption>
+        <table width="600" border="1" cellspacing="0" cellpadding="4" style="text-align:center">
+            <thead style="background:#c6efce">
+                <tr>
+                    <th>模块名</th>
+                    <th>错误信息</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for failed_service, reason_lines in failed_dict.items %}
+                <tr height="20" style="font-size:14px">
+                    <td>{{ failed_service }}</td>}
+                    <td>
+                        <ul>
+                            {% for reason in reason_lines %}
+                                <li>
+                                {{ reason }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% endif %}
+        <table width="600" border="1" cellspacing="0" cellpadding="4" style="text-align:center">
+            <thead style="background:#c6efce">
+                <tr>
+                    <th>模块名</th>
+                    <th>diff结果</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service_name, diff_info in diff_result_dict.items %}
+                <tr height="20" style="font-size:14px">
+                    <td>{{ service_name }}</td>
+                    <td>
+                        {% for success, diff_file_dir, diff_file_name in diff_info %}
+                        <a href="http://{{ host }}:{{ port }}/templates/templateDiffer/{{ diff_file_dir }}/{{ diff_file_name }}">{{ diff_file_name }}</a><br/>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>

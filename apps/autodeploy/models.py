@@ -26,7 +26,7 @@ class AutoDeployHistory(models.Model):
         start_time: upgrade work start time, auto add.
         managers: all upgrade managers' mail. split by comma
     """
-    upgrade_version = models.CharField(max_length=15)
+    upgrade_version = models.CharField(max_length=50)
     log_content = models.TextField(blank=True)
     progress_name = models.CharField(max_length=30)
     task_num = models.IntegerField()
@@ -95,6 +95,6 @@ class AutoDeployHistory(models.Model):
         """
         auto_deploy_history = AutoDeployHistory(upgrade_version=upgrade_version,
                                                 progress_name=method,
-                                                task_num=1, managers=','.join(managers))
+                                                task_num=1, managers=managers)
         auto_deploy_history.save()
 

@@ -1,9 +1,12 @@
+import copy
 import json
 
 import logging
 import traceback
 
 import datetime
+from threading import Thread
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render
@@ -16,12 +19,12 @@ from autodeploy import multiprocessmgr
 from autodeploy import processmgr
 from autodeploy.crontask import create_task
 from autodeploy.models import AutoDeployHistory
+from autodeploy.tasks import mail_conf_create_result
 from autodeploy.upgradeinfoutils import UpgradeInfoParser
 from common.models import RegionInfo
 from deploy.deployutils import create_confs
 from module.models import ModuleInfo
-from preprddeploy.celery import app
-from preprddeploy.settings import AUTO_DEPLOY_PROGRESS
+from preprddeploy.settings import AUTO_DEPLOY_PROGRESS, MAIL_DOMAIN
 
 logger = logging.getLogger('deploy')
 
@@ -67,15 +70,12 @@ def start_env_pre(request):
     upgrade_version = upgrade_info_file.parse_version()
     new_modules, error_modules, update_modules = upgrade_info_file.parse_modules()
     if error_modules:
-        # mail_sender = MailSender()
-        # Thread(target=mailSender.send_mail_when_module_error,
-        #        args=(error_modules, upgrade_info_json, managers)).start()
         return HttpResponse(json.dumps({'status': 500, 'info': error_modules}))
     if not update_modules:
         return HttpResponse(json.dumps({'status': 500, 'info': 'no update module found'}))
     else:
         try:
-            __create_conf_files(update_modules)
+            __create_conf_files(update_modules, managers)
         except:
             return HttpResponse(json.dumps({
                 'status': 500,
@@ -83,14 +83,13 @@ def start_env_pre(request):
             }))
     if new_modules:
         logger.debug('new modules in this upgrade are: %s, need to check the default launch params' % new_modules)
-        # mail_sender = MailSender()
-        # Thread(target=mailSender.send_mail_when_new_module,
-        #        args=(new_modules, managers, request.META['HTTP_HOST']))
     logger.info('all pre work done, add crontab task to start env')
     if create_task('start_env_at_%s' % start_time, 'autodeploy.tasks.start_env_request', {
         'upgrade_version': upgrade_version,
-        'managers': managers
+        'managers': ','.join(managers)
     }, datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M')):
+        request.session['upgrade_version'] = upgrade_version
+        request.session['managers'] = ','.join(managers)
         return HttpResponse(json.dumps({'status': 200}))
     return HttpResponse(json.dumps({'status': 500, 'info': 'add cronjob failed'}))
 
@@ -103,18 +102,95 @@ def start_env(request):
     AutoDeployHistory.add_new_deploy_history(upgrade_version, managers, 'start_env')
     result_worker = __get_result_worker('start_env')
     progress = processmgr.ProgressStarter('start_env', result_worker)
-    progress.start()
+    Thread(target=progress.start).start()
+    return HttpResponse('ok')
 
 
-def __create_conf_files(update_modules):
+def deploy_first_round(request):
+    auto_deploy_history = AutoDeployHistory.objects.filter(Q(is_deploy_finish=False) | Q(is_result_finish=False))
+    if auto_deploy_history:
+        return HttpResponse('%s autodeploy process is running: %s' % (
+            len(auto_deploy_history),
+            [history.progress_name for history in auto_deploy_history]
+        ), status=400)
+    username = request.GET.get('username')
+    if not username:
+        return HttpResponse('bad request!', status=400)
+    upgrade_version = request.session.get('upgrade_version', None)
+    managers = request.session.get('managers', None)
+    if not upgrade_version or not managers:
+        return HttpResponse('no upgrade version or managers info found, ensure prework(like stop env) has done before',
+                            status=400)
+    progress_name = 'deploy_first_round'
+    AutoDeployHistory.add_new_deploy_history(upgrade_version, managers, progress_name)
+    result_worker = __get_result_worker(progress_name)
+    progress = processmgr.ProgressStarter(progress_name, result_worker, **{'username': username,
+                                                                           'method': 'deploy',
+                                                                           'round_num': 1})
+    Thread(target=progress.start).start()
+    return HttpResponse(json.dumps({'status': 200}))
+
+
+def deploy_other_round(request):
+    auto_deploy_history = AutoDeployHistory.objects.filter(Q(is_deploy_finish=False) | Q(is_result_finish=False))
+    if auto_deploy_history:
+        return HttpResponse('%s autodeploy process is running: %s' % (
+            len(auto_deploy_history),
+            [history.progress_name for history in auto_deploy_history]
+        ), status=400)
+    username = request.GET.get('username')
+    round_num = int(request.GET.get('round_num'))
+    if not username or not round_num:
+        return HttpResponse('bad request!', status=400)
+    upgrade_version = request.session.get('upgrade_version', None)
+    managers = request.session.get('managers', None)
+    if not upgrade_version or not managers:
+        return HttpResponse('no upgrade version or managers info found, ensure prework(like stop env) has done before',
+                            status=400)
+    progress_name = 'deploy_other_round'
+    AutoDeployHistory.add_new_deploy_history(upgrade_version, managers, progress_name)
+    result_worker = __get_result_worker(progress_name)
+    progress = processmgr.ProgressStarter(progress_name, result_worker, **{'username': username,
+                                                                           'method': 'deploy',
+                                                                           'round_num': round_num})
+    Thread(target=progress.start).start()
+    return HttpResponse(json.dumps({'status': 200}))
+
+
+def ami_and_stop_env(request):
+    auto_deploy_history = AutoDeployHistory.objects.filter(Q(is_deploy_finish=False) | Q(is_result_finish=False))
+    if auto_deploy_history:
+        return HttpResponse('%s autodeploy process is running: %s' % (
+            len(auto_deploy_history),
+            [history.progress_name for history in auto_deploy_history]
+        ), status=400)
+    username = request.GET.get('username')
+    if not username:
+        return HttpResponse('bad request!', status=400)
+    upgrade_version = request.session.get('upgrade_version', None)
+    managers = request.session.get('managers', None)
+    if not upgrade_version or not managers:
+        return HttpResponse('no upgrade version or managers info found, ensure prework(like stop env) has done before',
+                            status=400)
+    progress_name = 'ami_and_finish_work'
+    AutoDeployHistory.add_new_deploy_history(upgrade_version, managers, progress_name)
+    result_worker = __get_result_worker(progress_name)
+    progress = processmgr.ProgressStarter(progress_name, result_worker, **{'username': username})
+    Thread(target=progress.start).start()
+    return HttpResponse(json.dumps({'status': 200}))
+
+
+def __create_conf_files(update_modules, managers):
     success_modules = {}
     failed_modules = {}
     diff_infos = {}
+    to_addrs = copy.copy(managers)
     for module_name, current_version, update_version in update_modules:
         module_list = module_name.split("_")
         update_version_list = update_version.split('_')
         current_version_list = current_version.split('_')
         module_info_obj = ModuleInfo.objects.get(module_name=module_name)
+        to_addrs.append('%s@%s' % (module_info_obj.user.username, MAIL_DOMAIN))
         region_objs = module_info_obj.regions.all()
         regions = [region_obj.region for region_obj in region_objs]
         success_infos, failed_infos, diff_results = create_confs(module_list, update_version_list,
@@ -125,6 +201,7 @@ def __create_conf_files(update_modules):
     for module, conf_info in success_modules.items():
         if not conf_info:
             success_modules.pop(module)
+    mail_conf_create_result.delay(list(set(to_addrs)), failed_modules.copy(), diff_infos.copy())
     if failed_modules:
         raise Exception('modules conf create failed, please check conf template: %s' % failed_modules)
     logger.info('all update modules conf create success.')

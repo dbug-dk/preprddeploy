@@ -35,7 +35,7 @@ class BatchAmiCreater(object):
         thread_pool.wait()
         create_ami_result = self.__check_thread_success()
         if not create_ami_result['ret']:
-            return {'ret': False, 'msg': create_ami_result['msg']}
+            return {'ret': False, 'msg': json.dumps(create_ami_result['msg'])}
         logger.info('all ami create success in regions: %s' % self.regions)
         return {'ret': True, 'msg': u'所有区域[%s]ami制作完成: %s' % (
             ','.join(self.regions),
